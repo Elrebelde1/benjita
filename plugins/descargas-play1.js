@@ -36,9 +36,9 @@ const handler = async (m, { conn, text, command}) => {
     await conn.sendFile(m.chat, thumbnail, "thumb.jpg", caption, m);
 
     if (command === "play") {
-      const apiRes = await fetch(`https://api.sylphy.xyz/download/ytmp3?url=${encodeURIComponent(video.url)}&apikey=sylphy-8238wss`);
+      const apiRes = await fetch(`https://api.sylphy.xyz/download/ytmp3v2?url=${encodeURIComponent(video.url)}&apikey=sylphy-8238wss`);
       const api = await apiRes.json();
-      const dl = api.dl_url || (api.res? api.res.url: null);
+      const dl = api.dl_url || (api.data? api.data.dl_url: null);
 
       if (!dl) return m.reply("❌ *No se pudo obtener el audio.*");
 
