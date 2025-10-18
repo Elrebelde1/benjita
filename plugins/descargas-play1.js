@@ -2,7 +2,7 @@
 import yts from "yt-search";
 import fetch from "node-fetch";
 
-const limit = 200;
+const limit = 100;
 
 const handler = async (m, { conn, text, command}) => {
   if (!text ||!text.trim()) {
@@ -36,7 +36,7 @@ const handler = async (m, { conn, text, command}) => {
     await conn.sendFile(m.chat, thumbnail, "thumb.jpg", caption, m);
 
     if (command === "play") {
-      const apiRes = await fetch(`https://api.sylphy.xyz/download/ytmp3?url=${encodeURIComponent(video.url)}&apikey=sylphy-e321`);
+      const apiRes = await fetch(`https://api.sylphy.xyz/download/ytmp3?url=${encodeURIComponent(video.url)}&apikey=sylphy-8238wss`);
       const api = await apiRes.json();
       const dl = api.dl_url || (api.res? api.res.url: null);
 
@@ -49,7 +49,7 @@ const handler = async (m, { conn, text, command}) => {
       await m.react("✅");
 
 } else if (command === "play2" || command === "playvid") {
-      const apiRes = await fetch(`https://api.sylphy.xyz/download/ytmp4?url=${encodeURIComponent(video.url)}&apikey=sylphy-e321`);
+      const apiRes = await fetch(`https://api.sylphy.xyz/download/ytmp4?url=${encodeURIComponent(video.url)}&apikey=sylphy-8238wss`);
       const api = await apiRes.json();
       const dl = api.dl_url || (api.res? api.res.url: null);
 
