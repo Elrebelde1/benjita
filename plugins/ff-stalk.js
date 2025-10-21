@@ -1,43 +1,46 @@
-import axios from 'axios'
 
-async function buscarJugadorFF(nickname) {
-  const { data} = await axios.get(`https://discordbot.freefirecommunity.com/search_player_api?nickname=${encodeURIComponent(nickname)}`, {
-    headers: {
-      'User-Agent': 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, como Gecko) Chrome/138.0.0.0 Mobile Safari/537.36',
-      'Accept': '*/*',
-      'Referer': 'https://www.freefirecommunity.com/ff-player-search/'
-}
-})
-  return data
+import axios from 'axios';
+
+let handler = async (m, { conn, text, usedPrefix, command}) => {
+  if (!text) {
+    throw `*⚠️ INGRESE UN ID DE JUGADOR DE FREE FIRE*\n\n*📝 Ejemplo de uso:*\n${usedPrefix + command} 92860576`;
 }
 
-let handler = async (m, { conn, args}) => {
+  m.reply('🎮 *Buscando datos del jugador...*');
+
   try {
-    if (!args[0]) return m.reply('📌 Por favor, proporciona el Nickname de Free Fire.')
-
-    let datos = await buscarJugadorFF(args[0])
-
-    if (datos.error) return m.reply('❌ Error: ' + datos.error)
-
-    let texto = `🔍 Resultados para: ${args[0]}\n\n`
-
-    datos.forEach((jugador, index) => {
-      const ultimaConexion = new Date(jugador.lastLogin * 1000).toLocaleDateString('en-US') // Región EEUU
-      texto += `${index + 1}. 🧑 Nickname: ${jugador.nickname}\n`
-      texto += `🆔 ID de cuenta: ${jugador.accountId}\n`
-      texto += `🎮 Nivel: ${jugador.level}\n`
-      texto += `🌎 Región: ${jugador.region}\n`
-      texto += `⏰ Última conexión: ${ultimaConexion}\n\n`
-})
-
-    m.reply(texto.trim())
+    const data = await getFreeFireData(text.trim());
+    const response = formatPlayerData(data);
+    m.reply(response);
 } catch (e) {
-    m.reply(`❌ Error: ${e.message}`)
+    m.reply('❌ *Error:* ' + e.message);
 }
+};
+
+async function getFreeFireData(playerId) {
+  const url = `https://api.vreden.my.id/api/v1/stalker/freefire?id=${playerId}`;
+  const { data} = await axios.get(url, { timeout: 10000});
+
+  if (!data.status ||!data.result) {
+    throw new Error('No se pudo obtener información del jugador.');
 }
 
-handler.help = ['ffsearch']
-handler.command = ['ffstalk', 'ffplayer']
-handler.tags = ['internet']
+  return data.result;
+}
 
-export default handler
+function formatPlayerData(player) {
+  return `🎯 *DATOS DEL JUGADOR FREE FIRE*\n` +
+         `═`.repeat(30) + `\n\n` +
+         `🆔 *ID:* ${player.game_id}\n` +
+         `👤 *Nombre:* ${player.username}\n` +
+         `🏅 *Nivel:* ${player.level || 'Desconocido'}\n` +
+         `📊 *Rango:* ${player.rank || 'No disponible'}\n` +
+         `🗓️ *Última actualización:* ${player.last_updated || 'No disponible'}\n\n` +
+         `✅ *Consulta completada con éxito.*`;
+}
+
+handler.help = ['ffstalk <id>'];
+handler.tags = ['tools', 'freefire'];
+handler.command = ['ffstalk', 'freefirestalk', 'stalkff'];
+
+export default handler;
