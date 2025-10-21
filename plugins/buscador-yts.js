@@ -1,5 +1,6 @@
+
 const ytSearchHandler = async (m, { conn, text, usedPrefix, command}) => {
-  const apikey = "sylphy-e321";
+  const apikey = "sylphy-8238wss";
 
   // Validar entrada
   if (!text ||!text.trim()) {
