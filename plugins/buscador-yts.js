@@ -16,7 +16,7 @@ let handler = async (m, { conn, text, usedPrefix, command}) => {
   await conn.reply(m.chat, `🔎 Buscando en YouTube por: *${query}*`, m);
 
   try {
-    const url = `https://api.sylphy.xyz/search/youtube?q=${encodeURIComponent(query)}&apike=${apikey}`;
+    const url = `https://api.sylphy.xyz/search/youtube?q=${encodeURIComponent(query)}&apike=sylphy-8238wss`;
     const res = await fetch(url);
 
     if (!res.ok) {
