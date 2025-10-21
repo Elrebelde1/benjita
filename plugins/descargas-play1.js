@@ -12,11 +12,9 @@ const handler = async (m, { conn, text, command}) => {
   await m.react("🎶")
 
   try {
-    // Si es URL directa
     const isUrl = text.includes("youtube.com") || text.includes("youtu.be")
     const videoUrl = isUrl? text.trim(): null
 
-    // Buscar si es texto
     let video
     if (!videoUrl) {
       const res = await yts(text.trim())
@@ -35,7 +33,6 @@ const handler = async (m, { conn, text, command}) => {
 
     const caption = `
 ╭─[ *Sasuke YouTube* ]─╮
-│
 │ 📌 *Título:* ${title}
 │ 👤 *Autor:* ${author}
 │ ⏱️ *Duración:* ${duration}
@@ -51,9 +48,9 @@ const handler = async (m, { conn, text, command}) => {
     await conn.sendFile(m.chat, thumbBuffer, "thumb.jpg", caption, m)
 
     if (command === "play") {
-      const apiRes = await fetch(`https://api.sylphy.xyz/download/ytmp3?url=${encodeURIComponent(urlToUse)}&apikey=sylphy-8238wss`)
+      const apiRes = await fetch(`https://api.sylphy.xyz/download/ytmp3v2?url=${encodeURIComponent(urlToUse)}&apikey=sylphy-8238wss`)
       const json = await apiRes.json()
-      const dl = json?.res?.url || json?.dl_url
+      const dl = json?.data?.dl_url
 
       if (!dl) return m.reply("❌ *No se pudo obtener el audio.*")
 
