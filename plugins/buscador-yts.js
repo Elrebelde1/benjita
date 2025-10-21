@@ -1,11 +1,13 @@
 
-const ytSearchHandler = async (m, { conn, text, usedPrefix, command}) => {
-  const apikey = "sylphy-8238wss"; // Usa tu clave válida aquí
 
+const ytSearchHandler = async (m, { conn, text, usedPrefix, command}) => {
+  const apikey = "sylphy-8238wss";
+
+  // Validar entrada
   if (!text ||!text.trim()) {
     await conn.reply(
       m.chat,
-      `📌 *Uso correcto:*\n${usedPrefix + command} <término de búsqueda>\n📍 *Ejemplo:* ${usedPrefix + command} Bad Bunny Un Preview`,
+      `📌 *Uso correcto:*\n${usedPrefix + command} <término de búsqueda>\n📍 *Ejemplo:* ${usedPrefix + command} Nio Garcia Infinitamente remix`,
       m
 );
     return;
@@ -15,24 +17,19 @@ const ytSearchHandler = async (m, { conn, text, usedPrefix, command}) => {
   await conn.reply(m.chat, `🔎 Buscando en YouTube por: *${query}*`, m);
 
   try {
-    const url = `https://api.sylphy.xyz/search/youtube?q=${encodeURIComponent(query)}&apike=${apikey}`;
-    const res = await fetch(url);
-
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-}
-
+    const res = await fetch(`https://api.sylphy.xyz/search/youtube?q=${encodeURIComponent(query)}&apike=sylphy-8238wss`);
     const json = await res.json();
 
     if (!json.status ||!json.res || json.res.length === 0) {
       return m.reply("❌ No se encontraron resultados.");
 }
 
-    const videos = json.res.slice(0, 5);
+    const videos = json.res.slice(0, 5); // Primeros 5 resultados
 
     for (const video of videos) {
       const caption = `
 ╭─🎶 *Sasuke Bot - Audio YouTube* 🎶─╮
+│
 │ 🎵 *Título:* ${video.title}
 │ 👤 *Autor:* ${video.author}
 │ ⏱️ *Duración:* ${video.duration}
@@ -44,6 +41,8 @@ const ytSearchHandler = async (m, { conn, text, usedPrefix, command}) => {
 │.ytmp3+ ${video.url}  ➤ Audio
 │.ytmp4+ ${video.url}  ➤ Video
 ╰──────────────────────────────────╯
+
+> © Código Oficial de Barboza MD™
 `;
 
       await conn.sendMessage(
