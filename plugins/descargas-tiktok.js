@@ -4,6 +4,32 @@ import fetch from 'node-fetch';
 const tiktokSessions = {}; // Almacena sesiones por usuario
 
 const handler = async (m, { conn, text, command}) => {
+  const sender = m.sender;
+
+  if (tiktokSessions[sender]) {
+    const choice = m.text.trim().replace(/[^0-9]/g, ''); // Extrae solo el número
+
+    if (choice === '1') {
+      await conn.sendMessage(m.chat, {
+        video: { url: tiktokSessions[sender].normal},
+        caption: `✅ *Aquí tienes tu video normal:* ${tiktokSessions[sender].title}`
+}, { quoted: m});
+      delete tiktokSessions[sender];
+      return;
+}
+
+    if (choice === '2') {
+      await conn.sendMessage(m.chat, {
+        video: { url: tiktokSessions[sender].hd},
+        caption: `✅ *Aquí tienes tu video HD:* ${tiktokSessions[sender].title}`
+}, { quoted: m});
+      delete tiktokSessions[sender];
+      return;
+}
+
+    return m.reply('❌ Opción inválida. Responde con 1 para video normal o 2 para video HD.');
+}
+
   if (!text) {
     return conn.reply(m.chat, '❌ ¡Necesito un enlace de TikTok! Por favor, proporciona uno después del comando.', m);
 }
@@ -49,7 +75,7 @@ const handler = async (m, { conn, text, command}) => {
 }, { quoted: m});
 
     // Guardar sesión
-    tiktokSessions[m.sender] = {
+    tiktokSessions[sender] = {
       normal: result.data.play,
       hd: result.data.play_hd,
       title: description
@@ -63,32 +89,7 @@ const handler = async (m, { conn, text, command}) => {
 
 handler.command = /^(tiktok|tt)$/i;
 
-// Manejador global para respuestas del usuario
-const messageHandler = async (m, { conn}) => {
-  const session = tiktokSessions[m.sender];
-  if (!session) return;
-
-  const choice = m.text.trim();
-  let videoUrl;
-
-  if (choice === '1') {
-    videoUrl = session.normal;
-} else if (choice === '2') {
-    videoUrl = session.hd;
-} else {
-    return m.reply('❌ Opción inválida. Responde con 1 para video normal o 2 para video HD.');
-}
-
-  await conn.sendMessage(m.chat, {
-    video: { url: videoUrl},
-    caption: `✅ *Aquí tienes tu video ${choice === '1'? 'normal': 'HD'}:* ${session.title}`
-}, { quoted: m});
-
-  delete tiktokSessions[m.sender]; // Limpiar sesión
-};
-
 export default handler;
-export { messageHandler};
 
 function formatDuration(seconds) {
   const minutes = Math.floor(seconds / 60);
