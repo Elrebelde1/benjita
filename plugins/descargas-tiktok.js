@@ -1,6 +1,8 @@
 
 import fetch from 'node-fetch';
 
+const tiktokSessions = {}; // Almacena sesiones por usuario
+
 const handler = async (m, { conn, text, command}) => {
   if (!text) {
     return conn.reply(m.chat, '❌ ¡Necesito un enlace de TikTok! Por favor, proporciona uno después del comando.', m);
@@ -17,9 +19,7 @@ const handler = async (m, { conn, text, command}) => {
 
     if (!result || result.code!== 0 ||!result.data ||!result.data.play) {
       let errorMessage = '❌ No pude descargar el video. Asegúrate de que el enlace sea correcto, público y esté disponible.';
-      if (result && result.msg) {
-        errorMessage += `\nDetalles: ${result.msg}`;
-}
+      if (result && result.msg) errorMessage += `\nDetalles: ${result.msg}`;
       return conn.reply(m.chat, errorMessage, m);
 }
 
@@ -48,9 +48,8 @@ const handler = async (m, { conn, text, command}) => {
       caption
 }, { quoted: m});
 
-    // Guardar elección pendiente
-    conn.tiktokChoice = conn.tiktokChoice || {};
-    conn.tiktokChoice[m.sender] = {
+    // Guardar sesión
+    tiktokSessions[m.sender] = {
       normal: result.data.play,
       hd: result.data.play_hd,
       title: description
@@ -62,37 +61,37 @@ const handler = async (m, { conn, text, command}) => {
 }
 };
 
-// Escucha la respuesta del usuario
-const responseHandler = async (m, { conn}) => {
-  const choice = conn.tiktokChoice?.[m.sender];
-  if (!choice) return;
+handler.command = /^(tiktok|tt)$/i;
 
-  const text = m.text.trim();
+// Manejador global para respuestas del usuario
+const messageHandler = async (m, { conn}) => {
+  const session = tiktokSessions[m.sender];
+  if (!session) return;
+
+  const choice = m.text.trim();
   let videoUrl;
 
-  if (text === '1') {
-    videoUrl = choice.normal;
-} else if (text === '2') {
-    videoUrl = choice.hd;
+  if (choice === '1') {
+    videoUrl = session.normal;
+} else if (choice === '2') {
+    videoUrl = session.hd;
 } else {
     return m.reply('❌ Opción inválida. Responde con 1 para video normal o 2 para video HD.');
 }
 
   await conn.sendMessage(m.chat, {
     video: { url: videoUrl},
-    caption: `✅ *Aquí tienes tu video ${text === '1'? 'normal': 'HD'}:* ${choice.title}`
+    caption: `✅ *Aquí tienes tu video ${choice === '1'? 'normal': 'HD'}:* ${session.title}`
 }, { quoted: m});
 
-  delete conn.tiktokChoice[m.sender]; // Limpiar después de usar
+  delete tiktokSessions[m.sender]; // Limpiar sesión
 };
 
-handler.command = /^(tiktok|tt)$/i;
-handler.after = responseHandler;
+export default handler;
+export { messageHandler};
 
 function formatDuration(seconds) {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   return `${minutes}:${remainingSeconds < 10? '0': ''}${remainingSeconds}`;
 }
-
-export default handler;
