@@ -1,63 +1,43 @@
-import axios from 'axios';
 
-// 📸 Función para obtener datos del perfil de Instagram usando Mollygram
-const obtenerPerfilMollygram = async (usuario) => {
-  const { data} = await axios.get(`https://media.mollygram.com/?url=${encodeURIComponent(usuario)}`, {
-    headers: {
-      'accept': '*/*',
-      'accept-encoding': 'gzip, deflate, br',
-      'accept-language': 'es-ES,es;q=0.9,en-US;q=0.8,en;q=0.7',
-      'origin': 'https://mollygram.com',
-      'referer': 'https://mollygram.com/',
-      'user-agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, como Gecko) Chrome/107.0.0.0 Safari/537.36'
+import fetch from 'node-fetch';
+
+const handler = async (m, { conn, text, usedPrefix, command}) => {
+  if (!text) {
+    return m.reply(`📌 *Uso correcto:*\n${usedPrefix + command} <nombre de usuario>\n📍 *Ejemplo:* ${usedPrefix + command} yahyaalmthr`);
 }
-});
 
-  const html = data.html;
+  try {
+    const res = await fetch(`https://api.vreden.my.id/api/v1/search/instagram/users?query=${encodeURIComponent(text)}`);
+    const json = await res.json();
 
-  const extraerDato = (regex) =>
-    html.match(regex)?.[1]?.trim() || null;
+    const users = json?.result?.search_data;
+    if (!users || users.length === 0) {
+      return m.reply("❌ No se encontraron usuarios.");
+}
 
-  const fotoPerfil = extraerDato(/<img[^>]*class="[^"]*rounded-circle[^"]*"[^>]*src="([^"]+)"/i)
-    || extraerDato(/<img[^>]*src="([^"]+)"[^>]*class="[^"]*rounded-circle[^"]*"/i);
+    let message = `🔍 *Resultados para:* ${text}\n\n`;
 
-  return {
-    usuario: extraerDato(/<h4 class="mb-0">([^<]+)<\/h4>/),
-    nombreCompleto: extraerDato(/<p class="text-muted">([^<]+)<\/p>/),
-    biografia: extraerDato(/<p class="text-dark"[^>]*>([^<]+)<\/p>/),
-    fotoPerfil,
-    publicaciones: extraerDato(/<div[^>]*>\s*<span class="d-block h5 mb-0">([^<]+)<\/span>\s*<div[^>]*>posts<\/div>/i),
-    seguidores: extraerDato(/<div[^>]*>\s*<span class="d-block h5 mb-0">([^<]+)<\/span>\s*<div[^>]*>followers<\/div>/i),
-    siguiendo: extraerDato(/<div[^>]*>\s*<span class="d-block h5 mb-0">([^<]+)<\/span>\s*<div[^>]*>following<\/div>/i)
-};
-};
+    for (const user of users.slice(0, 5)) {
+      message += `
+👤 *Nombre:* ${user.full_name || 'No disponible'}
+🔗 *Usuario:* @${user.username}
+🔒 *Privado:* ${user.is_private? 'Sí': 'No'}
+✅ *Verificado:* ${user.is_verified? 'Sí': 'No'}
+🖼️ *Foto:* ${user.profile_pic_url}
 
-// 🧩 Comando del bot
-let handler = async (m, { conn, args}) => {
-  if (!args[0]) throw '📌 Ejemplo de uso:.igstalk mycyll.7';
+`;
+}
 
-  const perfil = await obtenerPerfilMollygram(args[0]);
+    await conn.sendMessage(m.chat, { text: message.trim()}, { quoted: m});
 
-  const mensaje = `👤 *Perfil de Instagram*\n`
-    + `• 🆔 Usuario: ${perfil.usuario}\n`
-    + `• 📛 Nombre completo: ${perfil.nombreCompleto}\n`
-    + `• 📝 Biografía: ${perfil.biografia}\n`
-    + `• 📸 Publicaciones: ${perfil.publicaciones}\n`
-    + `• 👥 Seguidores: ${perfil.seguidores}\n`
-    + `• 🧑‍🤝‍🧑 Siguiendo: ${perfil.siguiendo}`;
-
-  if (perfil.fotoPerfil) {
-    await conn.sendMessage(m.chat, {
-      image: { url: perfil.fotoPerfil},
-      caption: mensaje
-}, { quoted: m});
-} else {
-    await m.reply(mensaje);
+} catch (e) {
+    console.error(e);
+    m.reply("⚠️ Error al buscar usuarios en Instagram.");
 }
 };
 
-handler.help = ['igstalk'];
-handler.command = ['igstalk'];
-handler.tags = ['herramientas'];
+handler.help = ['igstalk <usuario>'];
+handler.tags = ['internet'];
+handler.command = ['igstalk', 'instagramuser'];
 
 export default handler;
