@@ -7,7 +7,7 @@ const handler = async (m, { conn, text, usedPrefix, command}) => {
 }
 
   try {
-    const res = await fetch(`https://api.starlights.uk/api/ai/venice?text=messi${encodeURIComponent(text)}`);
+    const res = await fetch(`https://api.starlights.uk/api/ai/venice?text=${encodeURIComponent(text)}`);
     const json = await res.json();
     const raw = json?.objects?.[0]?.content;
 
