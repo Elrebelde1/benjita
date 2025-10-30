@@ -2,32 +2,34 @@
 import fetch from "node-fetch";
 
 let handler = async (m, { conn, text, usedPrefix, command}) => {
-  const apikey = "sylphy-8238wss";
-
-  if (!text ||!text.includes("youtube.com") &&!text.includes("youtu.be")) {
+  if (!text || (!text.includes("youtube.com") &&!text.includes("youtu.be"))) {
     return m.reply(`📌 *Uso correcto:*\n${usedPrefix + command} <enlace de YouTube>\n📍 *Ejemplo:* ${usedPrefix + command} https://youtu.be/g5nG15iTPT8`);
 }
 
   await m.react("⏳"); // Reacción inicial
 
   try {
-    const url = `https://api.sylphy.xyz/download/ytmp4?url=${encodeURIComponent(text)}&apikey=sylphy-8238wss`;
-    const res = await fetch(url);
+    const apiUrl = `https://api.vreden.my.id/api/v1/download/youtube/video?url=${encodeURIComponent(text)}&quality=360`;
+    const res = await fetch(apiUrl);
     if (!res.ok) throw new Error(`Error ${res.status}: ${res.statusText}`);
 
     const json = await res.json();
-    if (!json.status ||!json.res ||!json.res.url) {
+    const result = json?.result;
+
+    if (!result?.status ||!result?.download?.url) {
       return m.reply("❌ No se pudo obtener el video. Verifica el enlace o intenta con otro.");
 }
 
-    const { title, url: videoUrl} = json.res;
+    const { title} = result.metadata;
+    const videoUrl = result.download.url;
+    const filename = result.download.filename || `${title}.mp4`;
 
     await conn.sendMessage(
       m.chat,
       {
         video: { url: videoUrl},
         caption: `🎬 *${title}*\n\n✅ Video descargado con éxito.`,
-        fileName: `${title}.mp4`
+        fileName: filename
 },
       { quoted: m}
 );
