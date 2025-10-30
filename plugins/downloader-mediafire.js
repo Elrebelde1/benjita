@@ -1,52 +1,68 @@
 
-import fetch from 'node-fetch'
+import fetch from 'node-fetch';
 
-const handler = async (m, { conn, text, command, usedPrefix}) => {
-  const apikey = "sylphy-8238wss"
-
+const handler = async (m, { conn, text, usedPrefix, command}) => {
   if (!text) {
-    return m.reply(`📌 *Uso correcto:*\n${usedPrefix + command} <URL de MediaFire>\n📍 *Ejemplo:* ${usedPrefix + command} https://www.mediafire.com/file/abc123/archivo.zip`)
+    return m.reply(`⚠️ *Uso incorrecto.*\n📌 Ejemplo: \`${usedPrefix + command} https://www.mediafire.com/file/ejemplo/file.zip\``);
 }
 
-  if (!text.includes("mediafire.com")) {
-    return m.reply("❌ Por favor, proporciona una URL válida de MediaFire.")
+  if (!/^https?:\/\/(www\.)?mediafire\.com/.test(text)) {
+    return m.reply(`⚠️ *Enlace no válido.*\n📌 Asegúrate de ingresar una URL de MediaFire válida.\n\nEjemplo: \`${usedPrefix + command} https://www.mediafire.com/file/ejemplo/file.zip\``);
 }
 
-  const apiUrl = `https://api.sylphy.xyz/download/mediafire?url=${encodeURIComponent(text)}&apikey=${apikey}`
+  await m.react("⏳");
 
   try {
-    const res = await fetch(apiUrl)
-    const json = await res.json()
+    const apiUrl = `https://api.neoxr.eu/api/mediafire?url=${encodeURIComponent(text)}&apikey=russellxz`;
+    const response = await fetch(apiUrl);
 
-    if (!json.status ||!json.data ||!json.data.dl_url) {
-      return m.reply("❌ No se pudo obtener el archivo.")
+    if (!response.ok) {
+      throw new Error(`Error de la API: ${response.status} ${response.statusText}`);
 }
 
-    const info = json.data
-    const caption = `
-╭─📁 *MediaFire Downloader* ─╮
-│
-│ 📄 *Archivo:* ${info.filename}
-│ 📦 *Tipo:* ${info.mimetype}
-│ 📥 *Descargando archivo...*
-╰────────────────────────────╯
-`
+    const data = await response.json();
 
-    await conn.sendMessage(m.chat, { text: caption}, { quoted: m})
+    if (!data.status ||!data.data ||!data.data.url) {
+      throw new Error("No se pudo obtener el enlace de descarga.");
+}
+
+    const fileInfo = data.data;
+    const fileResponse = await fetch(fileInfo.url);
+    if (!fileResponse.ok) {
+      throw new Error("No se pudo descargar el archivo.");
+}
+
+    const fileBuffer = await fileResponse.buffer();
+
+    const caption = `
+📂 *Nombre del archivo:* ${fileInfo.title}
+📦 *Tamaño:* ${fileInfo.size}
+📏 *Tipo:* ${fileInfo.mime}
+🔗 *Extensión:* ${fileInfo.extension}
+`;
+
+    await conn.sendMessage(m.chat, { text: caption.trim()}, { quoted: m});
+
     await conn.sendMessage(m.chat, {
-      document: { url: info.dl_url},
-      mimetype: info.mimetype,
-      fileName: info.filename
-}, { quoted: m})
+      document: fileBuffer,
+      mimetype: fileInfo.mime,
+      fileName: fileInfo.title
+}, { quoted: m});
+
+    await m.react("✅");
 
 } catch (error) {
-    console.error("Error al conectar con la API:", error)
-    m.reply("⚠️ Ocurrió un error al intentar descargar el archivo.")
-}
-}
+    console.error("❌ Error en el comando mediafire:", error);
+    await conn.sendMessage(m.chat, {
+      text: `❌ *Ocurrió un error al procesar la solicitud:*\n_${error.message}_\n\n🔹 Inténtalo de nuevo más tarde.`
+}, { quoted: m});
 
-handler.help = ['mediafire <url>']
-handler.tags = ['descargas']
-handler.command = /^mediafire$/i
+    await m.react("❌");
+}
+};
 
-export default handler
+handler.help = ['mediafire <url>'];
+handler.tags = ['descargas'];
+handler.command = ['mediafire'];
+
+export default handler;
