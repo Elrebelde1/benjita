@@ -1,19 +1,17 @@
-Import yts from "yt-search";
+import yts from "yt-search";
 import fetch from "node-fetch";
 
 const limit = 100; // MB
 
 const handler = async (m, { conn, text, command}) => {
   if (!text ||!text.trim()) {
-    return m.reply(`🎶 *¿Qué villancico quieres escuchar?* 🎁
-*Uso correcto:*
-.play <nombre o URL de YouTube>
-📍 Ejemplo:.play All I Want for Christmas Is You
-📍 Ejemplo:.play https://youtu.be/yQC7Jfxz9cY`);
+    return m.reply(`*Uso correcto*
+:\n.play <nombre o URL de YouTube>\n
+Ejemplo:.play Rojo 27\n
+Ejemplo:.play https://youtu.be/yQC7Jfxz9cY`);
 }
 
-  // Reacción inicial festiva
-  await m.react("🎄");
+  await m.react("🎶");
 
   try {
     const isUrl = text.includes("youtube.com") || text.includes("youtu.be");
@@ -23,7 +21,7 @@ const handler = async (m, { conn, text, command}) => {
     if (!videoUrl) {
       const res = await yts(text.trim());
       if (!res ||!res.all || res.all.length === 0) {
-        return m.reply("❌ *El trineo no encontró resultados para tu búsqueda.*");
+        return m.reply("❌ *No se encontraron resultados para tu búsqueda.*");
 }
       video = res.all[0];
 }
@@ -36,19 +34,16 @@ const handler = async (m, { conn, text, command}) => {
     const thumbnail = video?.thumbnail || "https://i.imgur.com/JP52fdP.jpg";
 
     // Encabezado y etiquetas navideñas
-    // FIX: Se envuelve el diseño en triple backticks (```) para forzar la alineación.
     const caption = `
-\`\`\`
-╭─[ Trineo Musical de Sasuke ]─╮
-│ 🎶 Villancico: ${title}
-│ 👤 Intérprete: ${author}
-│ ⏱️ Tiempo en el Polo: ${duration}
-│ 👁️ Nieve Vistas: ${views}
-│ 🔗 Pista Musical: ${urlToUse}
+╭─[ Sasuke YouTube ]─╮
+│ ❌ Título: ${title}
+│ 👤 Autor: ${author}
+│ ⏱️ Duración: ${duration}
+│ 👁️ Vistas: ${views}
+│ 🔗 Enlace: ${urlToUse}
 ╰──────────────────╯
-\`\`\`
 
-🎁 *Santa está empacando tu regalo...*
+❌ *Procesando tu descarga...*
 `;
 
     const thumbRes = await fetch(thumbnail);
@@ -61,7 +56,7 @@ const handler = async (m, { conn, text, command}) => {
       const dl = json?.result?.download?.url;
       const format = "mp3";
 
-      if (!json?.result?.status ||!dl) return m.reply("❌ *El Elfo de Audio no encontró el villancico.*");
+      if (!json?.result?.status ||!dl) return m.reply("❌ *No se pudo obtener el audio.*");
 
       await conn.sendMessage(m.chat, {
         audio: { url: dl},
@@ -69,8 +64,7 @@ const handler = async (m, { conn, text, command}) => {
         fileName: `${title}.${format}`
 }, { quoted: m});
 
-      // Reacción de éxito de audio
-      await m.react("🎧");
+      await m.react("✅");
 }
 
     if (command === "play2" || command === "playvid") {
@@ -78,7 +72,7 @@ const handler = async (m, { conn, text, command}) => {
       const json = await apiRes.json();
       const dl = json?.result?.download?.url;
 
-      if (!json?.result?.status ||!dl) return m.reply("❌ *El Trineo de Video falló al cargar la peli.*");
+      if (!json?.result?.status ||!dl) return m.reply("❌ *No se pudo obtener el video.*");
 
       const fileRes = await fetch(dl);
       const sizeMB = parseInt(fileRes.headers.get("Content-Length") || 0) / (1024 * 1024);
@@ -91,13 +85,12 @@ const handler = async (m, { conn, text, command}) => {
         caption: ""
 }, { quoted: m});
 
-      // Reacción de éxito de video festiva
-      await m.react("🎅");
+      await m.react("🎥");
 }
 
 } catch (error) {
     console.error("❌ Error:", error);
-    m.reply("⚠️ *Ocurrió un error mágico al procesar tu regalo. Intenta de nuevo.*");
+    m.reply("⚠️ *Ocurrió un error al procesar tu solicitud.*");
 }
 };
 
