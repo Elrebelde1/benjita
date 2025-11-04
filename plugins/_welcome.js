@@ -8,9 +8,9 @@ export async function before(m, { conn, groupMetadata}) {
     const chat = global.db?.data?.chats?.[m.chat];
     if (!chat ||!chat.bienvenida) return true;
 
-    // --- Enlace de imagen predeterminado ---
-    const defaultImageUrl = 'https://qu.ax/yxwAs.jpg';
-    
+    // --- 🎁 Enlace de imagen Navideña ---
+    const defaultImageUrl = 'https://qu.ax/nQc8G.jpg'; // Imagen de Papá Noel
+
     // Función para obtener la imagen como buffer
     const get_default_image_buffer = async () => {
         return await fetch(defaultImageUrl).then(res => res.buffer());
@@ -53,7 +53,7 @@ export async function before(m, { conn, groupMetadata}) {
     const groupName = groupMetadata.subject;
     const groupDesc = groupMetadata.desc || '📜 Sin descripción disponible';
 
-    // *** Obtener el buffer de la imagen predeterminada para todos los casos ***
+    // *** Obtener el buffer de la imagen Navideña para todos los casos ***
     const imgBuffer = await get_default_image_buffer();
     // *************************************************************************
 
@@ -62,7 +62,7 @@ export async function before(m, { conn, groupMetadata}) {
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_ADD) {
       const welcomeText = customWelcome
 ? customWelcome.replace(/@user/gi, user).replace(/@group/gi, groupName).replace(/@desc/gi, groupDesc)
-: `🎉 *¡HOLA ${user}!* 🎉\n\nBienvenido/a a *${groupName}*.\n\n📚 *Sobre nosotros:*\n_${groupDesc}_\n\n🌟 ¡Esperamos que disfrutes tu estancia!`;
+: `🎅 *¡HO HO HOLA ${user}!* 🔔\n\n¡Bienvenido/a a *${groupName}*! Que la **magia de la Navidad** te acompañe.\n\n📚 *Sobre nosotros:*\n_${groupDesc}_\n\n🌟 ¡Felices fiestas!`;
 
       await conn.sendMessage(m.chat, {
         image: imgBuffer,
@@ -74,7 +74,7 @@ export async function before(m, { conn, groupMetadata}) {
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_LEAVE) {
       const goodbyeText = customBye
 ? customBye.replace(/@user/gi, user).replace(/@group/gi, groupName)
-: `😂 *Te extrañaremos pendejo* 🖕🏻\n\nGracias por haber formado parte de *${groupName}*`;
+: `😭 *¡El Grinch se ha ido!* ☃️\n\nGracias por compartir la Navidad en *${groupName}*. ¡Vuelve pronto, ${user}!`;
 
       await conn.sendMessage(m.chat, {
         image: imgBuffer,
@@ -86,7 +86,7 @@ export async function before(m, { conn, groupMetadata}) {
     if (m.messageStubType === WAMessageStubType.GROUP_PARTICIPANT_REMOVE) {
       const kickText = customKick
 ? customKick.replace(/@user/gi, user).replace(/@group/gi, groupName)
-: `😂 *Te extrañaremos pendejo* 🖕🏻\n\n*${user}* ha sido expulsado de *${groupName}*`;
+: `❌ *¡Elfo travieso expulsado!* 🧝🏻‍♂️\n\n*${user}* ha sido enviado de vuelta al Polo Norte. ¡Feliz Navidad!`;
 
       await conn.sendMessage(m.chat, {
         image: imgBuffer,
