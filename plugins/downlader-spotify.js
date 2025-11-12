@@ -1,64 +1,62 @@
-import fetch from 'node-fetch';
 
-const handler = async (m, { conn, text, command, usedPrefix}) => {
-  // 1. Validación de Entrada
-  if (!text) {
-    return m.reply(`📌 *Uso correcto:*\n${usedPrefix + command} <nombre de canción>\n📍 *Ejemplo:* ${usedPrefix + command} phonk`);
+import fetch from "node-fetch";
+
+const handler = async (m, { conn, text, command}) => {
+  if (!text ||!text.trim()) {
+    return m.reply(`🎄 *Uso correcto del comando navideño* 🎄\n\n.spotify <nombre de canción o URL de Spotify>\nEjemplo:.spotify Blinding Lights\nEjemplo:.spotify https://open.spotify.com/track/2uPMsTEKx79gJ8rB3AcT0v`);
 }
 
-  await m.react("🎧"); // Reacción de espera
+  await m.react("🎁"); // Emoji inicial festivo
 
   try {
+    const isUrl = text.includes("spotify.com");
     const query = encodeURIComponent(text.trim());
-    
-    // Nueva URL de la API de Nekolabs (solo para búsqueda y descarga por nombre/query)
-    const apiUrl = `https://api.nekolabs.web.id/downloader/spotify/play/v1?q=${query}`;
-    
-    const downloadRes = await fetch(apiUrl);
-    const downloadJson = await downloadRes.json();
-    
-    // Verificación de la respuesta de la API
-    const song = downloadJson?.result;
 
-    if (!song ||!song.url_download) {
-      return m.reply("❌ No se pudo encontrar o descargar el audio de esa canción. Asegúrate de escribir el nombre correctamente.");
+    const apiUrl = isUrl
+? `https://api.nekolabs.web.id/downloader/spotify/v2?url=${query}`
+: `https://api.nekolabs.web.id/downloader/spotify/play/v1?q=${query}`;
+
+    const res = await fetch(apiUrl);
+    const json = await res.json();
+
+    if (!json.status ||!json.result?.download?.url) {
+      return m.reply("❌ *Santa no encontró tu villancico en Spotify.*");
 }
 
-    // Extracción de datos
-    const title = song.title || 'Desconocido';
-    const artists = song.artist || 'Desconocido';
-    const duration = song.duration || 'N/A';
-    const image = song.thumbnail || 'https://i.imgur.com/3pQ0I.png'; // Imagen por defecto
+    const { title, artist, thumbnail, download} = json.result;
+    const audioUrl = download.url;
+    const format = "mp3";
 
     const caption = `
-╭─🎶 *Spotify Downloader* 🎶─╮
-│ 🎵 *Título:* ${title}
-│ 👤 *Autor:* ${artists}
-│ 🕒 *Duración:* ${duration}
-│ 📥 *Descargando audio...*
+╭─[ Trineo Musical de Spotify ]─╮
+│ 🎶 Villancico: ${title || "Desconocido"}
+│ 👤 Intérprete: ${artist || "Desconocido"}
+│ 🔗 Enlace: ${text.trim()}
 ╰────────────────────────────╯
+
+🎅 *Santa está preparando tu pista...*
 `;
 
-    // 2. Envío de la Portada y Detalles
-    await conn.sendMessage(m.chat, { image: { url: image}, caption}, { quoted: m});
-    
-    // 3. Envío del Audio
+    const thumbRes = await fetch(thumbnail || "https://i.imgur.com/JP52fdP.jpg");
+    const thumbBuffer = await thumbRes.buffer();
+    await conn.sendFile(m.chat, thumbBuffer, "spotify.jpg", caption, m);
+
     await conn.sendMessage(m.chat, {
-      audio: { url: song.url_download},
-      mimetype: 'audio/mpeg',
-      fileName: `${title} - ${artists}.mp3`
+      audio: { url: audioUrl},
+      mimetype: "audio/mpeg",
+      fileName: `${title}.${format}`
 }, { quoted: m});
 
-    await m.react("✅"); // Reacción de éxito
+    await m.react("🎧"); // Emoji de éxito festivo
 
-} catch (e) {
-    console.error("Error al procesar la descarga de Spotify:", e);
-    m.reply("⚠️ *Ocurrió un error al intentar conectarse con la API de descarga.*");
+} catch (error) {
+    console.error("🎄 Error Spotify:", error);
+    m.reply("⚠️ *El duende digital tuvo problemas con tu regalo musical. Intenta de nuevo.*");
 }
 };
 
-handler.help = ['spotify <nombre>'];
-handler.tags = ['music'];
-handler.command = /^spotify$/i;
+handler.help = ["spotify <texto o URL>"];
+handler.tags = ["descargas", "spotify"];
+handler.command = ["spotify"];
 
 export default handler;
