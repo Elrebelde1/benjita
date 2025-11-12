@@ -1,60 +1,63 @@
-
 import fetch from 'node-fetch';
 
 const handler = async (m, { conn, text, command, usedPrefix}) => {
+  // 1. Validación de Entrada
   if (!text) {
-    return m.reply(`📌 *Uso correcto:*\n${usedPrefix + command} <nombre de canción o URL de Spotify>\n📍 *Ejemplo:* ${usedPrefix + command} phonk\n📍 *Ejemplo:* ${usedPrefix + command} https://open.spotify.com/track/6UR5tB1wVm7qvH4xfsHr8m`);
+    return m.reply(`📌 *Uso correcto:*\n${usedPrefix + command} <nombre de canción>\n📍 *Ejemplo:* ${usedPrefix + command} phonk`);
 }
+
+  await m.react("🎧"); // Reacción de espera
 
   try {
-    let url = text.trim();
-
-    // Si es texto, buscar primero
-    if (!url.includes("open.spotify.com/track")) {
-      const searchRes = await fetch(`https://api.dorratz.com/spotifysearch?query=${encodeURIComponent(url)}`);
-      const searchJson = await searchRes.json();
-      const track = searchJson?.data?.[0];
-
-      if (!track ||!track.url) {
-        return m.reply("❌ No se encontraron canciones.");
-}
-
-      url = track.url;
-}
-
-    // Descargar desde la URL obtenida o proporcionada
-    const downloadRes = await fetch(`https://api.dorratz.com/spotifydl?url=${encodeURIComponent(url)}`);
+    const query = encodeURIComponent(text.trim());
+    
+    // Nueva URL de la API de Nekolabs (solo para búsqueda y descarga por nombre/query)
+    const apiUrl = `https://api.nekolabs.web.id/downloader/spotify/play/v1?q=${query}`;
+    
+    const downloadRes = await fetch(apiUrl);
     const downloadJson = await downloadRes.json();
-    const song = JSON.parse(downloadJson.objects?.[0]?.content || "{}");
+    
+    // Verificación de la respuesta de la API
+    const song = downloadJson?.result;
 
-    if (!song.download_url) {
-      return m.reply("❌ No se pudo descargar el audio.");
+    if (!song ||!song.url_download) {
+      return m.reply("❌ No se pudo encontrar o descargar el audio de esa canción. Asegúrate de escribir el nombre correctamente.");
 }
+
+    // Extracción de datos
+    const title = song.title || 'Desconocido';
+    const artists = song.artist || 'Desconocido';
+    const duration = song.duration || 'N/A';
+    const image = song.thumbnail || 'https://i.imgur.com/3pQ0I.png'; // Imagen por defecto
 
     const caption = `
 ╭─🎶 *Spotify Downloader* 🎶─╮
-│ 🎵 *Título:* ${song.name}
-│ 👤 *Autor:* ${song.artists}
-│ 🕒 *Duración:* ${(song.duration_ms / 60000).toFixed(2)} min
-│ 🔗 *Enlace:* ${url}
+│ 🎵 *Título:* ${title}
+│ 👤 *Autor:* ${artists}
+│ 🕒 *Duración:* ${duration}
 │ 📥 *Descargando audio...*
 ╰────────────────────────────╯
 `;
 
-    await conn.sendMessage(m.chat, { image: { url: song.image}, caption}, { quoted: m});
+    // 2. Envío de la Portada y Detalles
+    await conn.sendMessage(m.chat, { image: { url: image}, caption}, { quoted: m});
+    
+    // 3. Envío del Audio
     await conn.sendMessage(m.chat, {
-      audio: { url: song.download_url},
+      audio: { url: song.url_download},
       mimetype: 'audio/mpeg',
-      fileName: `${song.name}.mp3`
+      fileName: `${title} - ${artists}.mp3`
 }, { quoted: m});
 
+    await m.react("✅"); // Reacción de éxito
+
 } catch (e) {
-    console.error(e);
-    m.reply("⚠️ Error al buscar o descargar la canción.");
+    console.error("Error al procesar la descarga de Spotify:", e);
+    m.reply("⚠️ *Ocurrió un error al intentar conectarse con la API de descarga.*");
 }
 };
 
-handler.help = ['spotify <texto o URL>'];
+handler.help = ['spotify <nombre>'];
 handler.tags = ['music'];
 handler.command = /^spotify$/i;
 
