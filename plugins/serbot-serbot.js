@@ -56,7 +56,7 @@ como *Sub-Bot Temporal* en esta sesión.
 ⚠ Si ya estás conectado en otra sesión,
 se recomienda cerrarla para evitar errores o bloqueos.
 `;
-let imagenUrl = 'https://files.catbox.moe/lh55jm.jpg';
+let imagenUrl = 'https://qu.ax/anVss.jpg';
 
 let emoji2 = '🍁';
 
