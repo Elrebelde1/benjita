@@ -6,7 +6,6 @@ const handler = async (m, { conn, command, args, text, usedPrefix}) => {
     if (!text) throw `_*[ ⚠️ ] Agrega lo que quieres buscar*_\n\n_Ejemplo:_\n${usedPrefix}${command} Jomblo Happy`;
 
     try {
-        // 1. Buscar canción en Spotify
         const searchUrl = `https://api.vreden.my.id/api/v1/search/spotify?query=${encodeURIComponent(text)}&limit=1`;
         const { data} = await axios.get(searchUrl);
 
@@ -33,7 +32,6 @@ _*🎶 Enviando música...*_`.trim();
 
         await conn.sendFile(m.chat, image, 'spotify.jpg', info, m);
 
-        // 2. Descargar canción usando la URL del resultado
         const downloadUrl = `https://api.vreden.my.id/api/v1/download/spotify?url=${encodeURIComponent(url)}`;
         const response = await fetch(downloadUrl);
         const result = await response.json();
