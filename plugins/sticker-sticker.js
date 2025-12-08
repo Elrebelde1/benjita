@@ -41,5 +41,5 @@ let handler = async (m, { conn, args, usedPrefix, command}) => {
   if (stiker) return conn.sendFile(m.chat, stiker, 'sticker.webp', '', m)
 }
 
-handler.command = /^s$/i
+ handler.command = ["s"];
 export default handler
