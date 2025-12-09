@@ -41,14 +41,14 @@ para vincularte como *Sub-Bot Temporal* en esta sesión.
 ¡Muévete como el viento, shinobi!
 `;
 let rtx2 = `
-╔═══『 🧿 𝚂𝙰𝚂𝚄𝙺𝙴 - 𝙲𝙾𝙳𝙸𝙶𝙾 𝟾 𝙳𝙸𝙶𝙸𝚃𝙾𝚂 』═══╗
+╔═══『 𝙲𝙾𝙳𝙸𝙶𝙾 𝟾 𝙳𝙸𝙶𝙸𝚃𝙾𝚂 』═══╗
 
 🔐 *Conexión Sub-Bot Temporal (Código)*
 
 📲 Usa este código de 8 dígitos para vincularte
 como *Sub-Bot Temporal* en esta sesión.
 
-🧭 Pasos ocultos:
+🧭 Pasos A Seguir:
 ➤ ① Abre WhatsApp y ve a *Dispositivos vinculados*
 ➤ ② Selecciona *Vincular con número de teléfono*
 ➤ ③ Ingresa el código proporcionado
@@ -56,7 +56,7 @@ como *Sub-Bot Temporal* en esta sesión.
 ⚠ Si ya estás conectado en otra sesión,
 se recomienda cerrarla para evitar errores o bloqueos.
 `;
-let imagenUrl = 'https://qu.ax/anVss.jpg';
+let imagenUrl = 'https://files.catbox.moe/e0s3x2.jpg';
 
 let emoji2 = '🍁';
 
