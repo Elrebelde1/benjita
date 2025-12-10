@@ -160,7 +160,7 @@ const sendAudioWithRetry = async (conn, chat, audioUrl, trackTitle, artistName, 
   } catch (error) {
     console.error('⚠️ ɴᴏ ꜱᴇ ᴘᴜᴅᴏ ᴏʙᴛᴇɴᴇʀ ᴇʟ ᴛʜᴜᴍʙɴᴀɪʟ:', error.message);
     try {
-      const fallback = await axios.get('https://files.catbox.moe/5g5n73.webp', { responseType: 'arraybuffer' });
+      const fallback = await axios.get('https://files.catbox.moe/bex83k.jpg', { responseType: 'arraybuffer' });
       thumbnailBuffer = Buffer.from(fallback.data, 'binary');
     } catch (e) {
       console.error('Error con thumbnail fallback:', e);
