@@ -1,68 +1,80 @@
-
 import fetch from "node-fetch";
 
-let handler = async (m, { conn, text, usedPrefix, command}) => {
+const handler = async (m, { conn, text, usedPrefix, command }) => {
   if (!text) {
     return m.reply(`📦 *Uso correcto:*\n${usedPrefix + command} <nombre de la app>\n📍 *Ejemplo:* ${usedPrefix + command} WhatsApp`);
-}
+  }
 
   await m.react("⏳");
 
   try {
-    const apiUrl = `https://api.dorratz.com/v2/apk-dl?text=${encodeURIComponent(text)}`;
-    const res = await fetch(apiUrl);
-    const json = await res.json();
+    const apiUrl = `https://delirius-apiofc.vercel.app/download/apk?query=${encodeURIComponent(text)}`;
+    const response = await fetch(apiUrl);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
 
-    if (!json.objects ||!json.objects.length ||!json.objects[0].content) {
-      throw new Error("No se encontraron resultados válidos.");
-}
+    const { status, data } = await response.json();
 
-    let raw;
-    try {
-      raw = JSON.parse(json.objects[0].content);
-} catch (e) {
-      throw new Error("No se pudo analizar la información de la app.");
-}
+    if (!status || !data) {
+      throw new Error("La API no retornó datos válidos");
+    }
 
     const {
-      name = "Desconocido",
-      size = "N/A",
-      package: pkg = "N/A",
-      lastUpdate = "N/A",
-      icon,
-      dllink = null
-} = raw;
+      name,
+      size,
+      sizeByte,
+      image,
+      download: dllink,
+      developer,
+      publish,
+      id: packageId,
+      stats
+    } = data;
 
-    const caption = `
-📱 *Nombre:* ${name}
-📦 *Paquete:* ${pkg}
-🗓️ *Última actualización:* ${lastUpdate}
-📁 *Tamaño:* ${size}
-🔗 *Descarga:* ${dllink || "No disponible"}
-`;
+    const caption = [
+      `╭━━━『 *APK DOWNLOADER* 』━━━╮`,
+      `│`,
+      `│ 📱 *Aplicación:* ${name}`,
+      `│ 👨‍💻 *Desarrollador:* ${developer}`,
+      `│ 📦 *Paquete:* ${packageId}`,
+      `│ 📁 *Tamaño:* ${size}`,
+      `│ 🗓️ *Publicado:* ${publish}`,
+      `│ ⭐ *Rating:* ${stats.rating.average}/5 (${stats.rating.total} votos)`,
+      `│ 📥 *Descargas:* ${stats.downloads.toLocaleString()}`,
+      `│`,
+      `╰━━━━━━━━━━━━━━━━━━━━━╯`
+    ].join('\n');
 
-    if (icon) {
-      const iconRes = await fetch(icon);
-      const iconBuffer = await iconRes.buffer();
-      await conn.sendFile(m.chat, iconBuffer, "icon.png", caption, m);
-} else {
+    if (image) {
+      const imageBuffer = await fetch(image).then(r => r.buffer());
+      await conn.sendFile(m.chat, imageBuffer, "icon.png", caption, m);
+    } else {
       await m.reply(caption);
-}
+    }
 
-    // Intentar enviar el APK si el enlace es directo
-    if (dllink && dllink.endsWith(".apk")) {
-      await conn.sendFile(m.chat, dllink, `${name}.apk`, `📦 *Aquí tienes el APK de ${name}*`, m);
-}
+    if (dllink) {
+      const maxSize = 100 * 1024 * 1024;
+      
+      if (sizeByte && sizeByte > maxSize) {
+        await m.reply(`⚠️ *El archivo es demasiado grande (${size}).*\n\n🔗 *Descárgalo aquí:*\n${dllink}`);
+      } else {
+        await m.reply(`⬇️ *Enviando APK...*\n\n_Esto puede tardar unos momentos según el tamaño._`);
+        await conn.sendFile(m.chat, dllink, `${name}.apk`, `📦 *${name}*\n💾 ${size}`, m, false, { asDocument: true, mimetype: "application/vnd.android.package-archive" });
+      }
+    }
 
     await m.react("✅");
-} catch (error) {
-    console.error("❌ Error:", error);
-    await m.reply("⚠️ *No se pudo obtener la información del APK. Intenta con otro nombre o más específico.*");
-}
+  } catch (error) {
+    console.error("Error en APK handler:", error);
+    await m.reply(`⚠️ *No se pudo obtener la aplicación.*\n\n${error.message || 'Intenta con otro nombre o verifica que la app exista.'}`);
+    await m.react("❌");
+  }
 };
 
-handler.help = ["apk <nombre de la app>"];
+handler.help = ["apk"];
 handler.tags = ["descargas"];
-handler.command = ["apk"];
+handler.command = /^(apk|apkdl|downloadapk)$/i;
 
 export default handler;
