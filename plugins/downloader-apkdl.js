@@ -1,3 +1,4 @@
+
 import fetch from "node-fetch";
 
 const handler = async (m, { conn, text, usedPrefix, command }) => {
@@ -34,7 +35,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     } = data;
 
     const caption = [
-      `╭━━━『 *APK DOWNLOADER* 』━━━╮`,
+      `╭━[ *APK DOWNLOADER* ]━╮`,
       `│`,
       `│ 📱 *Aplicación:* ${name}`,
       `│ 👨‍💻 *Desarrollador:* ${developer}`,
@@ -44,7 +45,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
       `│ ⭐ *Rating:* ${stats.rating.average}/5 (${stats.rating.total} votos)`,
       `│ 📥 *Descargas:* ${stats.downloads.toLocaleString()}`,
       `│`,
-      `╰━━━━━━━━━━━━━━━━━━━━━╯`
+      `╰━━━━━━━━━━━━━━━━━━╯`
     ].join('\n');
 
     if (image) {
@@ -55,7 +56,7 @@ const handler = async (m, { conn, text, usedPrefix, command }) => {
     }
 
     if (dllink) {
-      const maxSize = 100 * 1024 * 1024;
+      const maxSize = 400 * 1024 * 1024;
       
       if (sizeByte && sizeByte > maxSize) {
         await m.reply(`⚠️ *El archivo es demasiado grande (${size}).*\n\n🔗 *Descárgalo aquí:*\n${dllink}`);
