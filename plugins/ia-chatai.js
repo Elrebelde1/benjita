@@ -1,71 +1,103 @@
-import fetch from 'node-fetch'
-import { downloadContentFromMessage } from '@whiskeysockets/baileys'
+import axios from "axios";
 
-let handler = async (m, { text, usedPrefix, command, conn }) => {
-  let q = m.quoted || m
-  let mime = (q.msg || q).mimetype || ''
-  let hasImage = /^image\/(jpe?g|png)$/.test(mime)
+let handler = async (m, { conn, text, usedPrefix, command }) => {
+    // Definiciones de contexto (si existen en el entorno global)
+    const ctxErr = (global.rcanalx || {})
+    const ctxWarn = (global.rcanalw || {})
+    const ctxOk = (global.rcanalr || {})
 
-  if (!text && !hasImage) {
-    return conn.reply(m.chat, `${emoji} Envía o responde a una imagen con una pregunta, o escribe un prompt para generar una imagen.\n\nEjemplo:\n${usedPrefix + command} ¿Qué ves en esta imagen?\n${usedPrefix + command} Genera una imagen de un zorro en la luna`, m, rcanal)
-  }
+    // Obtener la consulta desde el texto o el mensaje citado
+    const query = text || (m.quoted && m.quoted.text);
 
-  try {
-    await m.react('✨')
-    conn.sendPresenceUpdate('composing', m.chat)
-
-    let base64Image = null
-    let mimeType = null
-
-    if (hasImage) {
-      const stream = await downloadContentFromMessage(q, 'image')
-      let buffer = Buffer.from([])
-      for await (const chunk of stream) {
-        buffer = Buffer.concat([buffer, chunk])
-      }
-
-      base64Image = `data:${mime};base64,${buffer.toString('base64')}`
-      mimeType = mime
+    if (!query) {
+        await conn.sendMessage(m.chat, {
+            react: {
+                text: '❓', // Nuevo emoji para indicar falta de pregunta
+                key: m.key
+            }
+        });
+        // Mensaje de advertencia actualizado
+        return conn.reply(m.chat, `🤖 **¡Hola! Por favor, hazme una pregunta.**\n\nEjemplo: ${usedPrefix}${command} ¿Qué es la inteligencia artificial?`, m, ctxWarn);
     }
 
-    const body = {
-      prompts: text ? [text] : [],
-      imageBase64List: base64Image ? [base64Image] : [],
-      mimeTypes: mimeType ? [mimeType] : [],
-      temperature: 0.7
+    try {
+        await conn.sendMessage(m.chat, {
+            react: {
+                text: '✨', // Emoji para indicar que está procesando
+                key: m.key
+            }
+        });
+
+        // --- ATENCIÓN: La URL y la configuración interna siguen apuntando a Venice/otro servicio ---
+        // Si bien hemos cambiado los textos, la llamada real a la API debe ser ajustada si quieres usar la API real de Gemini.
+        // MANTENGO LA ESTRUCTURA ORIGINAL DE LA LLAMADA AXIOS, SOLO CAMBIANDO LOS NOMBRES EN EL TEXTO DEL BOT.
+
+        const { data } = await axios.request({
+            method: "POST",
+            url: "https://outerface.venice.ai/api/inference/chat", // URL original (NO ES GEMINI)
+            headers: {
+                accept: "*/*",
+                "content-type": "application/json",
+                origin: "https://venice.ai",
+                referer: "https://venice.ai/",
+                "user-agent": "Mozilla/5.0 (Android 10; Mobile; rv:131.0) Gecko/131.0 Firefox/131.0",
+                "x-venice-version": "interface@20250523.214528+393d253",
+            },
+            data: JSON.stringify({
+                requestId: "mifinfinity",
+                modelId: "dolphin-3.0-mistral-24b",
+                prompt: [{ content: query, role: "user" }],
+                systemPrompt: "",
+                conversationType: "text",
+                temperature: 0.8,
+                webEnabled: true,
+                topP: 0.9,
+                isCharacter: false,
+                clientProcessingTime: 15,
+            }),
+        });
+
+        const chunks = data
+            .split("\n")
+            .filter((chunk) => chunk.trim() !== "")
+            .map((chunk) => JSON.parse(chunk));
+
+        const result = chunks.map((chunk) => chunk.content).join("");
+
+        if (!result) {
+            // Error personalizado para el no resultado, mencionando Gémini
+            throw new Error("Gémini no pudo generar una respuesta clara.");
+        }
+
+        // Respuesta final, mostrando "Gémini AI"
+        await conn.reply(m.chat, `✨ *Respuesta de Gémini AI:*\n\n${result}`, m, ctxOk);
+
+        await conn.sendMessage(m.chat, {
+            react: {
+                text: '✅', // Emoji de éxito
+                key: m.key
+            }
+        });
+
+    } catch (err) {
+        console.error("Error Gémini:", err.message); // Consola ajustada
+
+        await conn.sendMessage(m.chat, {
+            react: {
+                text: '💥', // Emoji de error
+                key: m.key
+            }
+        });
+
+        // Mensaje de error ajustado
+        await conn.reply(m.chat, `⚠️ **¡Ups! Ha ocurrido un fallo en Gémini.**\n\nDetalles: *${err.message}*`, m, ctxErr);
     }
+};
 
-    const res = await fetch('https://g-mini-ia.vercel.app/api/gemini', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body)
-    })
-
-    const data = await res.json()
-
-
-    if (data?.image && data?.from === 'image-generator') {
-      return await conn.sendFile(m.chat, data.image, 'imagen.jpg', ` Claro aquí tienes tu imagen espero te guste 😸 \n\n\n> Gemini (IA) ✨`, m, rcanal)
-    }
-await m.react('🪄')
-
-
-    const respuesta = data?.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!respuesta) throw '❌ No se recibió respuesta válida de la IA.'
-
-    conn.reply(m.chat, respuesta.trim(), m, rcanal)
-    await m.react('🌟')
-
-  } catch (e) {
-    console.error('[ERROR GEMINI]', e)
-    await m.react('⚠️')
-    await conn.reply(m.chat, '⚠️ Ocurrió un error procesando la imagen o pregunta.', m, rcanal)
-  }
-}
-
-handler.command = ['gemini', 'geminis'];
-handler.tags = ['ia'];
+// Nombres de ayuda, etiquetas y comandos ajustados
 handler.help = ['gemini'];
-handler.group = false
+handler.tags = ['ia', 'gemini'];
+handler.command = ['gemini', 'geminiai'];
+handler.group = true;
 
-export default handler
+export default handler;
