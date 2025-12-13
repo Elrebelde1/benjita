@@ -1,131 +1,50 @@
-import axios from 'axios'
-
 import fetch from 'node-fetch'
 
 let handler = async (m, { conn, usedPrefix, command, text }) => {
+  const ctxErr = (global.rcanalx || {})
+  const ctxOk = (global.rcanalr || {})
 
-const isQuotedImage = m.quoted && (m.quoted.msg || m.quoted).mimetype && (m.quoted.msg || m.quoted).mimetype.startsWith('image/')
+  if (!text) {
+    await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } })
+    return conn.reply(m.chat, `🌀 *.ia* 🤖 *Debes escribir tu modelo y tu pregunta*\nEjemplo: ${usedPrefix}ia gpt-5-nano ¿Hola?`, m, ctxErr)
+  }
 
-const username = `${conn.getName(m.sender)}`
+  let args = text.split(' ')
+  let model = args.shift().toLowerCase()
+  const question = args.join(' ')
 
-const basePrompt = `Tu nombre es sᥲsᥙkᥱ ᑲ᥆𝗍 mძ 🌀 y parece haber sido creado por Barboza. Tú usas el idioma Español. Llamarás a las personas por su nombre ${username}, te gusta ser divertido, te encanta aprender y sobre todo las explociones. Lo más importante es que debes ser amigable con la persona con la que estás hablando. ${username}`
+  const modelosDisponibles = ['gpt-5-nano', 'claude', 'gemini', 'deepseek', 'grok', 'meta-ai', 'qwen']
 
-if (isQuotedImage) {
+  if (!modelosDisponibles.includes(model)) {
+    await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } })
+    return conn.reply(m.chat, `🌀 *Modelo de IA inválido*\nModelos disponibles: ${modelosDisponibles.join(', ')}`, m, ctxErr)
+  }
 
-const q = m.quoted
+  if (!question) {
+    await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } })
+    return conn.reply(m.chat, `🌀 *Escribe tu pregunta después del modelo*`, m, ctxErr)
+  }
 
-const img = await q.download?.()
+  try {
+    await conn.sendMessage(m.chat, { react: { text: '💭', key: m.key } })
+    await conn.sendPresenceUpdate('composing', m.chat)
 
-if (!img) {
+    const response = await fetch(`https://api-adonix.ultraplus.click/ai/chat?apikey=${global.apikey}&q=${encodeURIComponent(question)}&model=${model}`)
+    const data = await response.json()
 
-console.error('💛 Error: No image buffer available')
+    if (!data.status || !data.reply) throw new Error('No se recibió respuesta de la API')
 
-return conn.reply(m.chat, '💛 Error: No se pudo descargar la imagen.', m, fake)}
+    await conn.reply(m.chat, data.reply, m, ctxOk)
+    await conn.sendMessage(m.chat, { react: { text: '✅', key: m.key } })
 
-const content = '💛 ¿Qué se observa en la imagen?'
+  } catch (err) {
+    await conn.sendMessage(m.chat, { react: { text: '❌', key: m.key } })
+    conn.reply(m.chat, `❌️ *Error en la IA:* ${err.message}`, m, ctxErr)
+  }
+}
 
-try {
-
-const imageAnalysis = await fetchImageBuffer(content, img)
-
-const query = '😊 Descríbeme la imagen y detalla por qué actúan así. También dime quién eres'
-
-const prompt = `${basePrompt}. La imagen que se analiza es: ${imageAnalysis.result}`
-
-const description = await luminsesi(query, username, prompt)
-
-await conn.reply(m.chat, description, m)
-
-} catch (error) {
-
-console.error('💛 Error al analizar la imagen:', error)
-
-await conn.reply(m.chat, '💛 Error al analizar la imagen.', m)}
-
-} else {
-
-if (!text) { return conn.reply(m.chat, `💛 *Ingrese su petición*\n💛 *Ejemplo de uso:* ${usedPrefix + command} Como hacer un avión de papel`, m, rcanal)}
-
-await m.react('💬')
-
-try {
-
-const query = text
-
-const prompt = `${basePrompt}. Responde lo siguiente: ${query}`
-
-const response = await luminsesi(query, username, prompt)
-
-await conn.reply(m.chat, response, m)
-
-} catch (error) {
-
-console.error('💛 Error al obtener la respuesta:', error)
-
-await conn.reply(m.chat, 'Error: intenta más tarde.', m)}}}
-
-handler.help = ['chatgpt <texto>', 'ia <texto>']
-
-handler.tags = ['ai']
-
-handler.register = false
-
-// handler.estrellas = 1
-
-handler.command = ['ia', 'simi', 'chatgpt', 'ai', 'chat', 'gpt']
+handler.help = ["ia", "ai"]
+handler.tags = ["ai"]
+handler.command = ["ia", "ai", "itsuki"]
 
 export default handler
-
-// Función para enviar una imagen y obtener el análisis
-
-async function fetchImageBuffer(content, imageBuffer) {
-
-try {
-
-const response = await axios.post('https://Luminai.my.id', {
-
-content: content,
-
-imageBuffer: imageBuffer 
-
-}, {
-
-headers: {
-
-'Content-Type': 'application/json' 
-
-}})
-
-return response.data
-
-} catch (error) {
-
-console.error('Error:', error)
-
-throw error }}
-
-// Función para interactuar con la IA usando prompts
-
-async function luminsesi(q, username, logic) {
-
-try {
-
-const response = await axios.post("https://Luminai.my.id", {
-
-content: q,
-
-user: username,
-
-prompt: logic,
-
-webSearchMode: false
-
-})
-
-return response.data.result
-
-} catch (error) {
-
-console.error('💛 Error al obtener:', error)
-
-throw error }}
