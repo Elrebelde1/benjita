@@ -15,7 +15,7 @@ import axios from 'axios'
   [ '595972157130'],
   [ '174560573964411@lid', 'Rayo OFC', true ],
   [ '18498640873', "I'm Fz ~", true ],
-  [ '584226480049', 'bajobots', true ],
+  [ '573136602975', 'juanito', true ],
   [ '51928626068', "MediaHub",true ],
   [ '172056423456949', true ]
   ]
