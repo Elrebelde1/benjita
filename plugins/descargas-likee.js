@@ -1,4 +1,5 @@
-let botStatus = global.botStatus || (global.botStatus = {})
+
+global.botStatus = global.botStatus || {} // Asegura que exista
 
 let handler = async (m, { args, command, isOwner}) => {
   const chatId = m.chat
@@ -14,10 +15,10 @@ let handler = async (m, { args, command, isOwner}) => {
   const option = args[0].toLowerCase()
 
   if (option === 'on') {
-    botStatus[chatId] = true
+    global.botStatus[chatId] = true
     m.reply('✅ Bot activado en este grupo.')
 } else if (option === 'off') {
-    botStatus[chatId] = false
+    global.botStatus[chatId] = false
     m.reply('🛑 Bot desactivado en este grupo.')
 } else {
     m.reply('❓ Opción no válida. Usa "on" o "off".')
@@ -28,6 +29,6 @@ handler.help = ['bot <on/off>']
 handler.tags = ['owner']
 handler.command = /^bot$/i
 handler.group = true
-handler.rowner = true // Solo dueños reales
+handler.rowner = true
 
 export default handler
