@@ -6,22 +6,24 @@ const handler = async (m, { conn, args}) => {
 });
 }
 
-    let number = args[0].replace(/\D/g, '') + '@s.whatsapp.net';
+    const number = args[0].replace(/\D/g, '') + '@s.whatsapp.net';
 
     try {
         const [result] = await conn.onWhatsApp(number);
-        const estado = result?.exists? '🛑 *En soporte*': '🟢 *Sin soporte*';
+        const estado = result?.exists
+? '🛑 *En soporte*'
+: '🟢 *Sin soporte*';
 
         await conn.sendMessage(m.chat, {
             text: `📱 Estado del número *${args[0]}*:\n${estado}`
 });
 } catch (error) {
-        await conn.sendMessage(m.chat, {
-            text: `⚠️ No se pudo verificar el número.`
-});
         console.error('Error al verificar número:', error);
+        await conn.sendMessage(m.chat, {
+            text: '⚠️ No se pudo verificar el número.'
+});
 }
 };
 
 handler.command = ['wa'];
-export default handler
+export default handler;
