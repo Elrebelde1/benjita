@@ -10,7 +10,7 @@ const handler = async (m, { conn, args}) => {
 
     try {
         const [result] = await conn.onWhatsApp(number);
-        const estado = result?.exists? '🟢 *En soporte*': '🔴 *Sin soporte*';
+        const estado = result?.exists? '🛑 *En soporte*': '🟢 *Sin soporte*';
 
         await conn.sendMessage(m.chat, {
             text: `📱 Estado del número *${args[0]}*:\n${estado}`
