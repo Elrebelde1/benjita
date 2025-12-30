@@ -49,7 +49,7 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args}) =
   messageText += `└───────⭓\n\n*🦌 Sasuke Bot MD - El Trineo de Santa 🎅*`;
 
   // Puedes cambiar la imagen y el audio a algo navideño si lo tienes
-  const imageUrl = 'https://files.catbox.moe/lh55jm.jpg'; 
+  const imageUrl = 'https://qu.ax/4j9h7'; 
   const audioUrl = 'https://cdn.russellxz.click/3fd9f7de.mp3';
 
   // fkontak con temática de Santa Claus / Navidad
