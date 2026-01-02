@@ -3,12 +3,12 @@ import fetch from 'node-fetch'
 
 let handler = async (m, { text, usedPrefix, args}) => {
   if (!text) {
-    return m.reply(`🔍 Por favor, dime qué deseas buscar en *Google*.\n\n📌 Ejemplo: ${usedPrefix}google Momo Twice`)
+    return m.reply(`🔍 Por favor, dime qué deseas buscar en *Google*.\n\n📌 Ejemplo: ${usedPrefix}google Messi Inter Miami`)
 }
 
   const query = encodeURIComponent(text.trim())
+  const maxResults = Math.min(Number(args[1]) || 7, 10)
   const apiUrl = `https://delirius-apiofc.vercel.app/search/googlesearch?query=${query}`
-  const maxResults = Math.min(Number(args[1]) || 3, 10)
 
   try {
     await m.react('🕒')
