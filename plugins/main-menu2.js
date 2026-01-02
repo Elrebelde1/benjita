@@ -1,6 +1,6 @@
-Let handler = async (m, { isPrems, conn }) => {
-let img = 'https://qu.ax/Ny958' // Considera usar una imagen de fondo navideña si tienes una.
-let texto = `*🎄 _C A J A - M U S I C A L - N A V I D E Ñ A_ 🎅*
+const handler = async (m, { isPrems, conn }) => {
+  const img = 'https://qu.ax/Ny958' // Imagen navideña
+  const texto = `*🎄 _C A J A - M U S I C A L - N A V I D E Ñ A_ 🎅*
 
 *¡Encuentra tu audio festivo (o no) favorito!*
 *Usa el prefijo antes del nombre del audio.*
@@ -118,24 +118,14 @@ let texto = `*🎄 _C A J A - M U S I C A L - N A V I D E Ñ A_ 🎅*
 ° _:V_. 
 `
 
-const fkontak = {
-        "key": {
-    "participants":"0@s.whatsapp.net",
-                "remoteJid": "status@broadcast",
-                "fromMe": false,
-                "id": "Halo"
-        },
-        "message": {
-                "contactMessage": {
-                        "vcard": `BEGIN:VCARD\nVERSION:3.0\nN:Sy;Bot;;;\nFN:y\nitem1.TEL;waid=${m.sender.split('@')[0]}:${m.sender.split('@')[0]}\nitem1.X-ABLabel:Ponsel\nEND:VCARD`
-                }
-        },
-        "participant": "0@s.whatsapp.net"
+  await conn.sendMessage(m.chat, { image: { url: img }, caption: texto }, { quoted: m })
+
+  // Guardar timestamp
+  global.db.data.users[m.sender].lastcofre = Date.now()
 }
-await conn.sendFile(m.chat, img, 'img.jpg', texto, fkontak)
-global.db.data.users[m.sender].lastcofre = new Date * 1
-}
+
 handler.help = ['menu2']
-handler.tags = ['main'] 
-handler.command = ['menu2', 'menuaudios'] 
+handler.tags = ['main']
+handler.command = ['menu2', 'menuaudios']
+
 export default handler
