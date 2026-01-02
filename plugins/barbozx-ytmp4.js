@@ -1,9 +1,8 @@
-
 import fetch from 'node-fetch'
 
 const handler = async (m, { conn, text, usedPrefix, command}) => {
   try {
-    if (!text) return conn.reply(m.chat, '❀ Por favor, proporciona un enlace de YouTube.', m)
+    if (!text) return conn.reply(m.chat, '💥 Por favor, proporciona un enlace de YouTube.', m)
     await m.react('🕒')
 
     const ytRegex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/
@@ -16,12 +15,12 @@ const handler = async (m, { conn, text, usedPrefix, command}) => {
     const res = await fetch(apiUrl)
     const json = await res.json()
 
-    if (!json.result?.download?.url) throw '⚠ No se pudo obtener el video.'
+    if (!json.result?.download?.url) throw '👹 No se pudo obtener el video.'
 
     const title = json.result.title || 'video'
     const downloadUrl = json.result.download.url
 
-    await conn.sendFile(m.chat, downloadUrl, `${title}.mp4`, `> ❀ *${title}*\n> ✅ Video descargado en calidad 360p`, m)
+    await conn.sendFile(m.chat, downloadUrl, `${title}.mp4`, `> 💀 *${title}*\n> ✅ Video descargado en calidad 360p`, m)
     await m.react('✔️')
 } catch (e) {
     await m.react('✖️')
