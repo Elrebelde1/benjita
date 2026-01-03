@@ -2,12 +2,12 @@ import fetch from "node-fetch";
 
 const handler = async (m, { isOwner, isAdmin, conn, text, participants, args}) => {
   const chat = global.db.data.chats[m.chat] || {};
-  const emoji = '🔔'; 
+  const emoji = chat.emojiTag || '🤖';
 
   if (!(isAdmin || isOwner)) {
     global.dfail('admin', m, conn);
-    throw new Error('Solo los Elfos Jefes o Santa tienen permiso para usar este comando.');
-  }
+    throw new Error('No tienes permisos para usar este comando.');
+}
 
   const customMessage = args.join(' ');
   const groupMetadata = await conn.groupMetadata(m.chat);
@@ -22,8 +22,8 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args}) =
     '596': '🇲🇶', '597': '🇸🇷', '598': '🇺🇾', '53': '🇨🇺', '20': '🇪🇬', '972': '🇮🇱',
     '90': '🇹🇷', '63': '🇵🇭', '62': '🇮🇩', '60': '🇲🇾', '65': '🇸🇬', '66': '🇹🇭',
     '31': '🇳🇱', '32': '🇧🇪', '30': '🇬🇷', '36': '🇭🇺', '46': '🇸🇪', '47': '🇳🇴',
-    '48': '🇵🇱', '421': '🇸🇰', '420': '🇨🇿', '40': '🇷🇴', '43': '🇦🇹', '373': '🇲DOL'
-  };
+    '48': '🇵🇱', '421': '🇸🇰', '420': '🇨🇿', '40': '🇷🇴', '43': '🇦🇹', '373': '🇲🇩'
+};
 
   const getCountryFlag = (id) => {
     const phoneNumber = id.split('@')[0];
@@ -31,61 +31,64 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args}) =
     let prefix = phoneNumber.substring(0, 3);
     if (!countryFlags[prefix]) {
       prefix = phoneNumber.substring(0, 2);
-    }
-    return countryFlags[prefix] || '🌎';
-  };
+}
+    return countryFlags[prefix] || '🏳️‍🌈';
+};
 
-  let messageText = `*❄️ LLAMADA URGENTE DEL POLO NORTE ❄️*\n\n*GRUPO: ${groupName}*\n*AYUDANTES PRESENTES: ${participants.length}*\n\n_Mensaje de Santa: ${customMessage || '¡Es hora de preparar los regalos!'}_\n\n┌──⭓ *¡A TRABAJAR, DUENDES!*\n`;
-
+  let messageText = `*${groupName}*\n\n*Integrantes: ${participants.length}*\n${customMessage}\n┌──⭓ *Despierten*\n`;
   for (const mem of participants) {
     messageText += `${emoji} ${getCountryFlag(mem.id)} @${mem.id.split('@')[0]}\n`;
-  }
-  messageText += `└───────⭓\n\n*🦌 Sasuke Bot MD - El Trineo de Santa 🎅*`;
+}
+  messageText += `└───────⭓\n\n𝘚𝘶𝘱𝘦𝘳 𝘉𝘰𝘵 𝘞𝘩𝘢𝘵𝘴𝘈𝘱𝘱 🚩`;
 
-  // --- CAMBIOS REALIZADOS AQUÍ ---
-  // He actualizado el enlace a uno directo de Imgur que termina en .jpg
-  const imageUrl = 'https://i.imgur.com/vH9Xv9H.jpg'; 
-  const audioUrl = 'https://cdn.russellxz.click/3fd9f7de.mp3';
-
-  // Miniatura para el mensaje de contacto
-  let thumb;
-  try {
-    thumb = await (await fetch('https://i.imgur.com/vH9Xv9H.jpg')).buffer();
-  } catch {
-    thumb = Buffer.alloc(0); // Buffer vacío si falla la descarga
-  }
+  const imageUrl = 'https://cdn-sunflareteam.vercel.app/images/fa68a035ca.jpg';
+  const audioUrl = 'https://cdn.russellxz.click/a8f5df5a.mp3';
 
   const fkontak = {
-    key: { participants: "0@s.whatsapp.net", remoteJid: "status@broadcast", fromMe: false, id: "Navidad" },
+    key: {
+      participants: "0@s.whatsapp.net",
+      remoteJid: "status@broadcast",
+      fromMe: false,
+      id: "AlienMenu"
+},
     message: {
       locationMessage: {
-        name: "*Santa's Helper Bot 🎄*",
-        jpegThumbnail: thumb,
-        vcard: "BEGIN:VCARD\nVERSION:3.0\nN:;Santa;;;\nFN:Santa Claus Bot\nORG:Polo Norte Developers\nEND:VCARD"
-      }
-    },
+        name: "*Sasuke Bot MD 🌀*",
+        jpegThumbnail: await (await fetch('https://cdn-sunflareteam.vercel.app/images/fa68a035ca.jpg')).buffer(),
+        vcard:
+          "BEGIN:VCARD\n" +
+          "VERSION:3.0\n" +
+          "N:;Sasuke;;;\n" +
+          "FN:Sasuke Bot\n" +
+          "ORG:Barboza Developers\n" +
+          "TITLE:\n" +
+          "item1.TEL;waid=19709001746:+1 (970) 900-1746\n" +
+          "item1.X-ABLabel:Alien\n" +
+          "X-WA-BIZ-DESCRIPTION:🛸 Llamado grupal universal con estilo.\n" +
+          "X-WA-BIZ-NAME:Sasuke\n" +
+          "END:VCARD"
+}
+},
     participant: "0@s.whatsapp.net"
-  };
+};
 
-  // Enviar Imagen con Texto
   await conn.sendMessage(m.chat, {
-    image: { url: imageUrl },
+    image: { url: imageUrl},
     caption: messageText,
     mentions: participants.map(a => a.id)
-  }, { quoted: fkontak });
+}, { quoted: fkontak});
 
-  // Enviar Audio
   await conn.sendMessage(m.chat, {
-    audio: { url: audioUrl },
+    audio: { url: audioUrl},
     mimetype: 'audio/mp4',
     ptt: true
-  }, { quoted: fkontak });
+}, { quoted: fkontak});
 };
 
 handler.help = ['todos'];
 handler.tags = ['group'];
 handler.command = /^(tagall|invocar|marcar|todos|invocación)$/i;
-handler.admin = true; 
+handler.admin = false;
 handler.group = true;
 
 export default handler;
