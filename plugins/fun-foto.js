@@ -1,19 +1,56 @@
+import fetch from 'node-fetch'
+import { Sticker } from 'wa-sticker-formatter'
 
-import fetch from 'node-fetch'; 
-import MessageType from '@whiskeysockets/baileys'; 
+let handler = async (m, { conn, text, command }) => {
+  if (!text) return m.reply(`📌 Ejemplo: .${command} My Melody`)
 
-const handler = async (m, { conn }) => { 
   try {
-    // Reemplaza con el enlace de tu imagen antigua
-    const imageUrl = 'https://i.ibb.co/bj6sKRxF/file.jpg'; 
+    // Buscar packs en la API de Delirius
+    const searchRes = await fetch(`https://delirius-apiofc.vercel.app/search/stickerly?query=${encodeURIComponent(text)}`)
+    const searchJson = await searchRes.json()
 
-    // Enviar la imagen
-    await conn.sendFile(m.chat, imageUrl, 'fotoantigua.jpg', 'Aquí tienes tu foto antigua!', m);
+    if (!Array.isArray(searchJson) || searchJson.length === 0) {
+      return m.reply('❌ No se encontraron stickers.')
+    }
+
+    // Elegir un pack aleatorio
+    const pick = searchJson[Math.floor(Math.random() * searchJson.length)]
+    const packName = pick.name || 'Sin nombre'
+    const authorName = pick.author || 'Desconocido'
+
+    m.reply(`🎉 Pack encontrado: *${packName}* de *${authorName}*\n📦 Enviando 5 stickers...`)
+
+    // Descargar stickers del pack
+    const downloadRes = await fetch(`https://delirius-apiofc.vercel.app/download/stickerly?url=${encodeURIComponent(pick.url)}`)
+    const downloadJson = await downloadRes.json()
+
+    if (!Array.isArray(downloadJson) || downloadJson.length === 0) {
+      return m.reply('⚠️ No se pudieron descargar stickers.')
+    }
+
+    // Enviar máximo 5 stickers
+    const stickersToSend = downloadJson.slice(0, 5)
+
+    for (let i = 0; i < stickersToSend.length; i++) {
+      const sticker = new Sticker(stickersToSend[i], {
+        pack: packName,
+        author: authorName,
+        type: 'full',
+        categories: ['🔥'],
+        id: `delirius-${i}`
+      })
+      const buffer = await sticker.toBuffer()
+      await conn.sendMessage(m.chat, { sticker: buffer }, { quoted: m })
+    }
+
   } catch (e) {
-    console.error(e);
-    conn.sendMessage(m.chat, { text: 'Lo siento, ocurrió un error al enviar la foto.' }, { quoted: m });
+    console.error(e)
+    m.reply('⚠️ Error al procesar los stickers.')
   }
-}; 
+}
 
-handler.command = /^\.fotoantiguabot$/i; 
-export default handler;
+handler.help = ['stikerly <consulta>']
+handler.tags = ['sticker']
+handler.command = /^stikerly$/i
+
+export default handler
