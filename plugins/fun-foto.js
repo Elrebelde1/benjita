@@ -9,12 +9,12 @@ let handler = async (m, { conn, text, command }) => {
     const searchRes = await fetch(`https://delirius-apiofc.vercel.app/search/stickerly?query=${encodeURIComponent(text)}`)
     const searchJson = await searchRes.json()
 
-    if (!Array.isArray(searchJson) || searchJson.length === 0) {
+    if (!searchJson.status || !Array.isArray(searchJson.data) || searchJson.data.length === 0) {
       return m.reply('❌ No se encontraron stickers.')
     }
 
     // Elegir un pack aleatorio
-    const pick = searchJson[Math.floor(Math.random() * searchJson.length)]
+    const pick = searchJson.data[Math.floor(Math.random() * searchJson.data.length)]
     const packName = pick.name || 'Sin nombre'
     const authorName = pick.author || 'Desconocido'
 
@@ -24,12 +24,12 @@ let handler = async (m, { conn, text, command }) => {
     const downloadRes = await fetch(`https://delirius-apiofc.vercel.app/download/stickerly?url=${encodeURIComponent(pick.url)}`)
     const downloadJson = await downloadRes.json()
 
-    if (!Array.isArray(downloadJson) || downloadJson.length === 0) {
+    if (!downloadJson.status || !downloadJson.data || !Array.isArray(downloadJson.data.stickers)) {
       return m.reply('⚠️ No se pudieron descargar stickers.')
     }
 
     // Enviar máximo 5 stickers
-    const stickersToSend = downloadJson.slice(0, 5)
+    const stickersToSend = downloadJson.data.stickers.slice(0, 5)
 
     for (let i = 0; i < stickersToSend.length; i++) {
       const sticker = new Sticker(stickersToSend[i], {
