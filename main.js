@@ -1,4 +1,4 @@
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1'
+Process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '1'
 import './config.js';
 import { createRequire } from 'module'
 import path, { join } from 'path'
@@ -31,6 +31,11 @@ const { makeInMemoryStore, DisconnectReason, useMultiFileAuthState, MessageRetry
 const { CONNECTING } = ws
 const { chain } = lodash
 const PORT = process.env.PORT || process.env.SERVER_PORT || 3000
+
+import express from 'express'
+import cors from 'cors'
+import { assistant_accessJadiBot } from './plugins/©acceso.js'
+
 protoType();
 serialize();
 
@@ -482,3 +487,28 @@ setInterval(() => {
     process.send('reset');
 }
 }, 1000 * 60 * 60 * 2); // 2 horas
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.post('/api/get-pairing-code', async (req, res) => {
+    let { phoneNumber } = req.body;
+    if (!phoneNumber) return res.status(400).send({ error: "Número faltante" });
+    try {
+        const num = phoneNumber.replace(/\D/g, '');
+        const code = await assistant_accessJadiBot({ 
+            m: null, 
+            conn: global.conn, 
+            phoneNumber: num, 
+            fromCommand: false 
+        }); 
+        res.status(200).send({ code });
+    } catch (e) {
+        res.status(500).send({ error: e.message });
+    }
+});
+
+app.listen(PORT, () => {
+    console.log(chalk.greenBright(`\nAPI WEB: Servidor activo en puerto ${PORT}`));
+});
