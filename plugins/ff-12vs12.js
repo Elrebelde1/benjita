@@ -1,6 +1,9 @@
+import fs from 'fs'
+import path from 'path'
+
 let handlerLista = async (m, { conn }) => {
   const listaPath = path.join('./database/lista12vs12.json')
-  if (!fs.existsSync(listaPath)) throw 'No hay lista creada aún'
+  if (!fs.existsSync(listaPath)) throw '⚠️ No hay lista creada aún'
 
   const lista = JSON.parse(fs.readFileSync(listaPath, 'utf-8'))
 
