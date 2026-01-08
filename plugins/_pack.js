@@ -6,7 +6,7 @@ let handler = async (m, { conn, text, usedPrefix, command}) => {
   m.react('🕑');
 
   let txt = 'Pack🔥🔥🔥\n> Pon De Nuevo.pack para mirar el siguiente ✨';
-  let img = 'https://delirius-apiofc.vercel.app/nsfw/girls';
+  let img = 'https://api.dorratz.com/nsfw/tetas';
 
   const textRandom = [
     "𝙀𝙩𝙞𝙦𝙪𝙚𝙩𝙖 𝙂𝙚𝙣𝙚𝙧𝙖𝙡 𝙓 *Sasuke*",
