@@ -11,7 +11,7 @@ const handler = async (m, { conn, args }) => {
 
   const query = args.join(' ');
   // Usamos la API de Delirius
-  const apiUrl = `https://delirius-apiofc.vercel.app/search/playstore?q=${encodeURIComponent(query)}`;
+  const apiUrl = `https://api.delirius.store/search/playstore?q=${encodeURIComponent(query)}`;
 
   try {
     await m.react('⏳');
