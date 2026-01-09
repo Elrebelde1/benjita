@@ -6,7 +6,7 @@ let handler = async (m, { conn, text, command }) => {
 
   try {
     // Buscar packs en la API de Delirius
-    const searchRes = await fetch(`https://delirius-apiofc.vercel.app/search/stickerly?query=${encodeURIComponent(text)}`)
+    const searchRes = await fetch(`https://api.delirius.store/search/stickerly?query=${encodeURIComponent(text)}`)
     const searchJson = await searchRes.json()
 
     if (!searchJson.status || !Array.isArray(searchJson.data) || searchJson.data.length === 0) {
