@@ -115,7 +115,7 @@ const handler = async (m, { isOwner, isAdmin, conn, text, participants, args}) =
 // Comando y etiquetas actualizadas
 handler.help = ['pais'];
 handler.tags = ['group'];
-handler.command = /^(pais|bandera|paises)$/i; // Ahora el comando es /pais o /bandera o /paises
+handler.command = /^(ahh|bandera|paises)$/i; // Ahora el comando es /pais o /bandera o /paises
 handler.admin = true; // Se mantiene como admin
 handler.group = true;
 
