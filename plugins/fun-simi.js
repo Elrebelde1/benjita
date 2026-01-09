@@ -7,7 +7,7 @@ let handler = async (m, { conn, text, usedPrefix, command }) => {
 
   try {
     // Endpoint de Delirius IA con parámetro q
-    const url = `https://delirius-apiofc.vercel.app/ia/chatgpt?q=${encodeURIComponent(text)}`;
+    const url = `https://api.delirius.store/ia/chatgpt?q=${encodeURIComponent(text)}`;
     const res = await fetch(url);
     const data = await res.json();
 
