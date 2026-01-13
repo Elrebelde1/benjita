@@ -6,14 +6,14 @@ const handler = async (m, { conn, text, command, usedPrefix }) => {
     return m.reply(`🦅 *¿Qᴜᴇ ʙᴜsᴄᴀs ᴇɴ ʟᴀ ᴏsᴄᴜʀɪᴅᴀᴅ?*\n\nUsᴏ ᴄᴏʀʀᴇᴄᴛᴏ:\n${usedPrefix + command} <ɴᴏᴍʙʀᴇ ᴏ URL>\n\nEx: ${usedPrefix + command} Ace of Base Happy Nation`);
   }
 
-  await m.react("👁️"); // Reacción de inicio
+  await m.react("👁️");
 
   try {
-    // Buscar el video en YouTube
     const search = await yts(text);
     const video = search.videos[0];
 
     if (!video) {
+      await m.react("❌");
       return m.reply("🌑 *Mis ojos no ven nada con ese nombre. Intenta de nuevo.*");
     }
 
@@ -33,37 +33,32 @@ const handler = async (m, { conn, text, command, usedPrefix }) => {
 
 🌑 *Eʟ ᴘᴏᴅᴇʀ sᴇ ᴇsᴛᴀ ᴄᴀɴᴀʟɪᴢᴀɴᴅᴏ...*`.trim();
 
-    // Enviar miniatura e info
     await conn.sendFile(m.chat, thumbnail, "thumb.jpg", caption, m);
 
-    // Determinar si es audio o video
-    const isVideo = command === "play2" || command === "playvid";
+    const isVideo = /play2|playvid/i.test(command);
     const type = isVideo ? "video" : "audio";
-    const quality = isVideo ? "360" : "128"; // Calidades estándar para evitar errores de peso
-
-    // Llamada a la API
-    const apiRes = await fetch(`https://api.vreden.my.id/api/v1/download/youtube/${type}?url=${encodeURIComponent(urlToUse)}&quality=${quality}`);
+    const quality = isVideo ? "360" : "128";
+    const apiUrl = `https://api.vreden.my.id/api/v1/download/youtube/${type}?url=${encodeURIComponent(urlToUse)}&quality=${quality}`;
+    
+    const apiRes = await fetch(apiUrl);
     const json = await apiRes.json();
 
-    // VALIDACIÓN CRÍTICA: La API puede responder 200 pero traer error en el 'result'
-    if (!json.status || !json.result || !json.result.download || !json.result.download.url) {
-      const errorMsg = json.result?.download?.message || "Error desconocido en el servidor";
-      return m.reply(`💢 *Fᴀʟʟᴏ ᴇʟ Jᴜᴛsᴜ:* ${errorMsg}`);
+    if (!json.status || !json.result?.download?.status) {
+      const errorMsg = json.result?.download?.message || json.message || "Error de conversión";
+      throw new Error(errorMsg);
     }
 
     const dlUrl = json.result.download.url;
 
     if (isVideo) {
-      // Enviar Video
       await conn.sendMessage(m.chat, {
         video: { url: dlUrl },
         mimetype: "video/mp4",
         fileName: `${title}.mp4`,
-        caption: `⚡ *Aϙᴜɪ ᴛɪᴇɴᴇs ᴛᴜ ᴅᴇsᴛɪɴᴏ.*`
+        caption: `⚡ *Aquí tienes tu destino.*`
       }, { quoted: m });
       await m.react("🦅");
     } else {
-      // Enviar Audio
       await conn.sendMessage(m.chat, {
         audio: { url: dlUrl },
         mimetype: "audio/mpeg",
@@ -74,7 +69,8 @@ const handler = async (m, { conn, text, command, usedPrefix }) => {
 
   } catch (error) {
     console.error(error);
-    m.reply("⚠️ *💢 Mɪs ᴏᴊᴏs ʜᴀɴ sɪᴅᴏ ʙʟᴏϙᴜᴇᴀᴅᴏs. Oᴄᴜʀʀɪᴏ ᴜɴ ᴇʀʀᴏʀ ᴇɴ ᴇʟ Jᴜᴛsᴜ.*");
+    await m.react("❌");
+    m.reply(`⚠️ *💢 Mɪs ᴏᴊᴏs ʜᴀɴ sɪᴅᴏ ʙʟᴏϙᴜᴇᴀᴅᴏs.*\n\n*Detalle:* ${error.message}`);
   }
 };
 
