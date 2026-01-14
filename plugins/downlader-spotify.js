@@ -1,4 +1,4 @@
-// Echo Por MediaHub..No Copiar La Idea Hdsptmr 🖕🏻
+
 import fetch from 'node-fetch';
 import axios from 'axios';
 import { writeFileSync, readFileSync, existsSync } from 'fs';
@@ -176,7 +176,7 @@ const sendAudioWithRetry = async (conn, chat, audioUrl, trackTitle, artistName, 
     contextInfo: {
       externalAdReply: {
         title: trackTitle,
-        body: `${artistName} • ${sendAsDocument ? "📁 Sasuke ʙᴏᴛ - ᴅᴏᴄᴜᴍᴇɴᴛᴏ" : "🎵 Spotify"}`,
+        body: `${artistName} • ${sendAsDocument ? "📁 𝙏𝙝𝙚 𝙆𝙞𝙣𝙜'𝙨 𝘽𝙤𝙩 👾 - ᴅᴏᴄᴜᴍᴇɴᴛᴏ" : "🎵 Spotify"}`,
         previewType: 'PHOTO',
         thumbnail: thumbnailBuffer,
         mediaType: 1,
