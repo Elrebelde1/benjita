@@ -1,162 +1,97 @@
 import fetch from 'node-fetch';
-import axios from 'axios';
 import { writeFileSync, readFileSync, existsSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const CONTADOR_PATH = join(__dirname, '.contador_spotify.txt');
+const CONTADOR_PATH = join(__dirname, '.contador_play.txt');
 
-// --- FUNCIONES DE UTILIDAD ---
+// --- UTILIDADES ---
 
 function contarDescarga() {
   let contador = 0;
   if (existsSync(CONTADOR_PATH)) {
     try {
       contador = parseInt(readFileSync(CONTADOR_PATH, 'utf8')) || 0;
-    } catch (error) {
-      console.error('Error leyendo contador:', error);
-    }
+    } catch (error) { console.error(error); }
   }
   contador += 1;
-  try {
-    writeFileSync(CONTADOR_PATH, String(contador));
-  } catch (error) {
-    console.error('Error escribiendo contador:', error);
-  }
+  try { writeFileSync(CONTADOR_PATH, String(contador)); } catch (e) { console.error(e); }
   return contador;
 }
-
-function isSpotifyURL(text) {
-  const spotifyRegex = /^(https?:\/\/)?(open\.)?spotify\.com\/(track|album|playlist)\/.+/i;
-  return spotifyRegex.test(text);
-}
-
-// --- INTEGRACIÓN DE API DELIRIUS ---
-
-async function searchSpotify(query) {
-  try {
-    const response = await fetch(`https://api.delirius.store/search/spotify?q=${encodeURIComponent(query)}&limit=1`);
-    const res = await response.json();
-    if (!res.status || !res.data.length) return null;
-    return res.data[0]; // Retorna el primer resultado de la búsqueda
-  } catch (error) {
-    console.error('Error en búsqueda Spotify:', error);
-    return null;
-  }
-}
-
-async function downloadSpotify(url) {
-  try {
-    const response = await fetch(`https://api.delirius.store/download/spotifydl?url=${encodeURIComponent(url)}`);
-    const res = await response.json();
-    if (!res.status) return null;
-    return res.data; // Retorna title, author, image, download, etc.
-  } catch (error) {
-    console.error('Error en descarga Spotify:', error);
-    return null;
-  }
-}
-
-const sendAudioWithRetry = async (conn, chat, audioUrl, trackTitle, artistName, thumbnailUrl, maxRetries = 2) => {
-  let attempt = 0;
-  let thumbnailBuffer;
-
-  try {
-    const response = await axios.get(thumbnailUrl, { responseType: 'arraybuffer' });
-    thumbnailBuffer = Buffer.from(response.data, 'binary');
-  } catch (error) {
-    try {
-      const fallback = await axios.get('https://files.catbox.moe/bex83k.jpg', { responseType: 'arraybuffer' });
-      thumbnailBuffer = Buffer.from(fallback.data, 'binary');
-    } catch (e) {
-      thumbnailBuffer = Buffer.alloc(0);
-    }
-  }
-
-  const messageOptions = {
-    audio: { url: audioUrl },
-    mimetype: 'audio/mpeg',
-    ptt: false,
-    contextInfo: {
-      externalAdReply: {
-        title: trackTitle,
-        body: `${artistName} • 🎵 Spotify Downloader`,
-        previewType: 'PHOTO',
-        thumbnail: thumbnailBuffer,
-        mediaType: 1,
-        sourceUrl: 'https://api.delirius.store'
-      }
-    }
-  };
-
-  while (attempt < maxRetries) {
-    try {
-      await conn.sendMessage(chat, messageOptions);
-      return true;
-    } catch (error) {
-      attempt++;
-      if (attempt >= maxRetries) throw error;
-    }
-  }
-};
 
 // --- HANDLER PRINCIPAL ---
 
 const handler = async (m, { conn, args, usedPrefix, command }) => {
   if (!args[0]) {
-    return conn.reply(m.chat, `[❗️] ᴜsᴏ: ${usedPrefix}${command} <ɴᴏᴍʙʀᴇ ᴏ ᴜʀʟ ᴅᴇ sᴘᴏᴛɪғʏ>`, m);
+    return conn.reply(m.chat, `[❗️] ᴜsᴏ:\n${usedPrefix}${command} <ɴᴏᴍʙʀᴇ ᴅᴇ ʟᴀ ᴄᴀɴᴄɪᴏ́ɴ>`, m);
   }
 
+  // play = mp3 | play2 = mp4
+  const isVideo = command === 'play2';
+  const typeLabel = isVideo ? 'VIDEO' : 'AUDIO';
+  const apiKey = "799343a24b120a1a5798fe780b823230";
+
   try {
-    await m.react('🎵');
+    await m.react('⏳');
     const input = args.join(" ");
-    let spotifyUrl = "";
-    let trackData = null;
-
-    await m.reply(`🔍 ʙᴜsᴄᴀɴᴅᴏ "${input}" ᴇɴ sᴘᴏᴛɪғʏ...`);
-
-    // 1. Obtener la URL de Spotify
-    if (isSpotifyURL(input)) {
-      spotifyUrl = input;
-    } else {
-      const searchResult = await searchSpotify(input);
-      if (!searchResult) throw "No se encontraron resultados en Spotify.";
-      spotifyUrl = searchResult.url;
-    }
-
-    // 2. Obtener link de descarga y metadatos
-    await m.react('📥');
-    trackData = await downloadSpotify(spotifyUrl);
     
-    if (!trackData || !trackData.download) {
-      throw "No se pudo obtener el enlace de descarga directo.";
+    await m.reply(`🔍 ᴘʀᴏᴄᴇsᴀɴᴅᴏ "${input}"...\nᴛɪᴘᴏ: ${typeLabel}`);
+
+    // Construcción de la URL basada en tu ejemplo
+    const apiUrl = `https://optishield.uk/api/?type=mp3-mp4&apikey=${apiKey}&audio=${encodeURIComponent(input)}&image=${encodeURIComponent(input)}`;
+    
+    const response = await fetch(apiUrl);
+    const res = await response.json();
+
+    // Validamos que la API devuelva datos (ajusta según la respuesta real de la API)
+    const downloadUrl = isVideo ? (res.mp4 || res.result?.mp4) : (res.mp3 || res.result?.mp3);
+    const thumbnail = res.thumb || res.image || "https://files.catbox.moe/bex83k.jpg";
+
+    if (!downloadUrl) {
+      throw "No se encontró un enlace de descarga válido en la API.";
     }
 
-    // 3. Enviar el audio
-    await m.react('📤');
-    await sendAudioWithRetry(
-      conn,
-      m.chat,
-      trackData.download,
-      trackData.title,
-      trackData.author || trackData.artist || "Spotify Artist",
-      trackData.image
-    );
+    await m.react('📥');
+
+    if (isVideo) {
+      // Enviar como VIDEO (play2)
+      await conn.sendMessage(m.chat, { 
+        video: { url: downloadUrl }, 
+        caption: `✅ *${input}*\n\n> 📥 Descargado con éxito`,
+        mimetype: 'video/mp4' 
+      }, { quoted: m });
+    } else {
+      // Enviar como AUDIO (play)
+      await conn.sendMessage(m.chat, { 
+        audio: { url: downloadUrl }, 
+        mimetype: 'audio/mpeg',
+        ptt: false,
+        contextInfo: {
+          externalAdReply: {
+            title: input,
+            body: "🎵 Multimedia Downloader",
+            previewType: 'PHOTO',
+            thumbnailUrl: thumbnail,
+            sourceUrl: 'https://optishield.uk'
+          }
+        }
+      }, { quoted: m });
+    }
 
     contarDescarga();
-    await m.react('🟢');
+    await m.react('✅');
 
   } catch (e) {
     console.error(e);
-    await m.react('🔴');
-    return m.reply(`❌ ᴇʀʀᴏʀ: ${e.toString()}`);
+    await m.react('❌');
+    return m.reply(`❌ ᴇʀʀᴏʀ: No se pudo completar la solicitud.`);
   }
 };
 
-handler.command = /^play$/i;
-handler.help = ['play <query/url>'];
+handler.command = /^(play|play2)$/i;
+handler.help = ['play <query>', 'play2 <query>'];
 handler.tags = ['descargas'];
 
 export default handler;
