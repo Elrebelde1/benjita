@@ -26,7 +26,7 @@ const menuFooter = `
 ╭─❒ 「 💻 SISTEMA ⚡ 」
 │ 🤖 **𝙏𝙝𝙚 𝙆𝙞𝙣𝙜's 𝘽𝙤𝙩 👾**
 │ 🛠️ Usa el prefijo para ejecutar comandos
-│ 🌐 Creado por Benja 
+│ 🌐 Creado por bxnja 
 ╰❒
 `.trim();
 
@@ -95,7 +95,7 @@ const handler = async (m, { conn, usedPrefix }) => {
       anime: '🎭', info: 'ℹ️', search: '🔍', diversión: '🎮', subbots: '🤖',
       rpg: '⚔️', registro: '📝', sticker: '🏷️', imagen: '🖼️', logo: '🎨',
       premium: '💎', configuración: '⚙️', descargas: '📥', herramientas: '🛠️',
-      nsfw: '🔞', 'base de datos': '🗄️', audios: '🎵', freefire: '🔫', otros: '📂'
+      nsfw: '🔞🔥', 'base de datos': '🗄️', audios: '🎵', freefire: '🔫', otros: '📂💾'
     };
 
     const menuBody = Object.entries(categorizedCommands).map(([title, cmds]) => {
@@ -110,7 +110,7 @@ ${saludo} ${tagUsuario} 👋
 ╭─ 「 𝙏𝙝𝙚 𝙆𝙞𝙣𝙜'𝙨 𝘽𝙤𝙩 👾 」
 │ 👤 Usuario: ${userName}
 │ 📈 Nivel: ${level} | XP: ${exp - min}/${xp}
-│ 💎 Diamantes: ${limit}
+│ 💎 Gemas del rey: ${limit}
 │ 🕹️ Modo: ${mode}
 │ ⏳ Actividad: ${uptime}
 │ 👥 Usuarios: ${totalUsers}
