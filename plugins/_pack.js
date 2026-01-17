@@ -5,7 +5,7 @@ import axios from 'axios';
 let handler = async (m, { conn, text, usedPrefix, command}) => {
   m.react('🕑');
 
-  let txt = 'Pack🔥🔥🔥\n> Pon De Nuevo el comando .pack para mirar el siguiente ✨';
+  let txt = 'Pack🔥🔥🔥\n> Pon De Nuevo el comando .pack para mirar el siguiente, Si eres Kelvin métete un pene♥️✨';
   let img = 'https://api.dorratz.com/nsfw/tetas';
 
   const textRandom = [
