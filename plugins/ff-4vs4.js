@@ -39,8 +39,8 @@ let handler = async (m, { conn, args, command, usedPrefix}) => {
         vcard:
           'BEGIN:VCARD\n' +
           'VERSION:3.0\n' +
-          'N:;Sasuke;;;\n' +
-          'FN:Sasuke Bot\n' +
+          'N:;b;;;\n' +
+          'FN:Benja\n' +
           'ORG:Kaneki Developers\n' +
           'TITLE:\n' +
           'item1.TEL;waid=19709001746:+1 (970) 900-1746\n' +
