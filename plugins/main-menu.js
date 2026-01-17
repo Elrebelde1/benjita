@@ -18,7 +18,7 @@ const saludarSegunHora = () => {
 };
 
 // Imagen de respaldo y separadores
-const img = 'https://files.catbox.moe/aosovz.jpg';
+const img = 'https://files.catbox.moe/qqaj1o.jpg';
 const sectionDivider = '╰━━━━━━━━━━━━━━━━━━⭓';
 
 // Pie de menú profesional
